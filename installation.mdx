@@ -1,0 +1,224 @@
+---
+title: Installation
+description: Download and install gSubs on Windows, macOS, or Linux
+---
+
+gSubs is available for Windows, macOS, and Linux. Choose your platform below to get started.
+
+## Windows
+
+<Steps>
+  <Step title="Download the installer">
+    Visit the [gSubs releases page](https://github.com/sanjevirau/gsubs/releases) and download the latest `.exe` installer for Windows.
+    
+    The installer uses NSIS and is configured for per-machine installation.
+  </Step>
+  
+  <Step title="Run the installer">
+    Double-click the downloaded `.exe` file to launch the installer.
+    
+    <Warning>
+      Windows may show a SmartScreen warning since gSubs is open-source software. Click "More info" and then "Run anyway" to proceed.
+    </Warning>
+  </Step>
+  
+  <Step title="Complete installation">
+    Follow the installation wizard prompts. gSubs will be installed and automatically added to your Start menu.
+  </Step>
+  
+  <Step title="Launch gSubs">
+    Open gSubs from your Start menu or desktop shortcut. The app will check for updates on first launch.
+  </Step>
+</Steps>
+
+### Windows system requirements
+
+- Windows 7 or later
+- 100 MB free disk space
+- Internet connection for subtitle downloads
+
+## macOS
+
+<Steps>
+  <Step title="Download the DMG">
+    Visit the [gSubs releases page](https://github.com/sanjevirau/gsubs/releases) and download the latest `.dmg` file for macOS.
+  </Step>
+  
+  <Step title="Open the DMG">
+    Double-click the downloaded `.dmg` file to mount the disk image.
+  </Step>
+  
+  <Step title="Install the application">
+    Drag the gSubs app icon to your Applications folder.
+    
+    <img src="/images/macos-install.png" alt="Drag gSubs to Applications" />
+  </Step>
+  
+  <Step title="Launch gSubs">
+    Open gSubs from your Applications folder or Launchpad.
+    
+    <Warning>
+      On first launch, macOS may show a security warning. Go to System Preferences > Security & Privacy and click "Open Anyway" to allow gSubs to run.
+    </Warning>
+  </Step>
+</Steps>
+
+### macOS system requirements
+
+- macOS 10.10 (Yosemite) or later
+- 100 MB free disk space
+- Internet connection for subtitle downloads
+
+## Linux
+
+gSubs supports multiple Linux distribution formats. Choose the format that works best for your system.
+
+<Tabs>
+  <Tab title="AppImage">
+    <Steps>
+      <Step title="Download the AppImage">
+        Visit the [gSubs releases page](https://github.com/sanjevirau/gsubs/releases) and download the latest `.AppImage` file.
+      </Step>
+      
+      <Step title="Make it executable">
+        Open a terminal and navigate to your downloads directory, then run:
+        
+        ```bash
+        chmod +x gSubs-*.AppImage
+        ```
+      </Step>
+      
+      <Step title="Run gSubs">
+        Double-click the AppImage file or run it from the terminal:
+        
+        ```bash
+        ./gSubs-*.AppImage
+        ```
+      </Step>
+    </Steps>
+    
+    <Tip>
+      AppImage is the most portable option and works on virtually any Linux distribution without installation.
+    </Tip>
+  </Tab>
+  
+  <Tab title="Debian/Ubuntu (.deb)">
+    <Steps>
+      <Step title="Download the .deb package">
+        Visit the [gSubs releases page](https://github.com/sanjevirau/gsubs/releases) and download the latest `.deb` file.
+      </Step>
+      
+      <Step title="Install the package">
+        Open a terminal and navigate to your downloads directory, then run:
+        
+        ```bash
+        sudo dpkg -i gsubs_*.deb
+        ```
+        
+        If you encounter dependency errors, run:
+        
+        ```bash
+        sudo apt-get install -f
+        ```
+      </Step>
+      
+      <Step title="Launch gSubs">
+        Run gSubs from your application menu or by running:
+        
+        ```bash
+        gsubs
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+  
+  <Tab title="Fedora/RHEL (.rpm)">
+    <Steps>
+      <Step title="Download the .rpm package">
+        Visit the [gSubs releases page](https://github.com/sanjevirau/gsubs/releases) and download the latest `.rpm` file.
+      </Step>
+      
+      <Step title="Install the package">
+        Open a terminal and navigate to your downloads directory, then run:
+        
+        ```bash
+        sudo rpm -i gsubs-*.rpm
+        ```
+        
+        Or using dnf:
+        
+        ```bash
+        sudo dnf install gsubs-*.rpm
+        ```
+      </Step>
+      
+      <Step title="Launch gSubs">
+        Run gSubs from your application menu or by running:
+        
+        ```bash
+        gsubs
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+### Linux system requirements
+
+- Modern Linux distribution (kernel 3.10+)
+- 100 MB free disk space
+- Internet connection for subtitle downloads
+
+## Verify installation
+
+Once installed, verify that gSubs is working correctly:
+
+1. Launch the application
+2. You should see the purple gradient interface with the gSubs logo
+3. The window should display a drag-and-drop zone and a search box
+4. Check the bottom right for the language selector (defaults to English)
+
+<Note>
+  On first launch, gSubs automatically checks for updates. This requires an internet connection.
+</Note>
+
+## Auto-updates
+
+gSubs includes an auto-updater powered by `electron-updater`. When a new version is available:
+
+1. gSubs will automatically download the update in the background
+2. A notification will appear at the top of the window when the update is ready
+3. Click "Install Update" to quit and install the new version
+4. gSubs will restart with the latest version
+
+<Tip>
+  You never need to manually download updates. gSubs handles everything automatically.
+</Tip>
+
+## Troubleshooting
+
+### Windows: "Windows protected your PC" warning
+
+This is a SmartScreen warning for unsigned applications. Click "More info" and then "Run anyway" to proceed with installation.
+
+### macOS: "gSubs can't be opened because it is from an unidentified developer"
+
+Go to System Preferences > Security & Privacy > General, and click "Open Anyway" next to the gSubs warning message.
+
+### Linux: Permission denied when running AppImage
+
+Make sure the AppImage file has execute permissions:
+
+```bash
+chmod +x gSubs-*.AppImage
+```
+
+## Next steps
+
+<Card
+  title="Quickstart"
+  icon="rocket"
+  href="/quickstart"
+>
+  Learn how to download your first subtitle in under a minute
+</Card>

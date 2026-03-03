@@ -1,0 +1,299 @@
+---
+title: How to contribute
+description: Guidelines for contributing to gSubs development
+---
+
+Thank you for considering contributing to gSubs! Your contributions help make gSubs better for everyone. This guide will help you get started with the contribution process.
+
+## Ways to contribute
+
+There are many ways to contribute to gSubs:
+
+<CardGroup cols={2}>
+  <Card title="Code contributions" icon="code">
+    Add features, fix bugs, or improve performance
+  </Card>
+  <Card title="Documentation" icon="book">
+    Write tutorials, improve docs, or create guides
+  </Card>
+  <Card title="Bug reports" icon="bug">
+    Report issues and help identify problems
+  </Card>
+  <Card title="Feature requests" icon="lightbulb">
+    Suggest new features and improvements
+  </Card>
+</CardGroup>
+
+## Getting started
+
+<Steps>
+  <Step title="Fork the repository">
+    [Fork](https://help.github.com/articles/fork-a-repo/) the gSubs repository to your own GitHub account. This creates your own copy where you can make changes.
+
+    ```bash
+    # Clone your fork
+    git clone git@github.com:YOUR_USERNAME/gsubs.git
+    cd gsubs
+    ```
+  </Step>
+
+  <Step title="Set up your development environment">
+    Install dependencies and verify everything works:
+
+    ```bash
+    npm install
+    npm start
+    ```
+
+    See the [setup guide](/development/setup) for detailed instructions.
+  </Step>
+
+  <Step title="Create a feature branch">
+    Create a new branch for your work:
+
+    ```bash
+    git checkout -b feature/your-feature-name
+    # or
+    git checkout -b fix/bug-description
+    ```
+
+    Use descriptive branch names:
+    - `feature/add-subtitle-preview`
+    - `fix/drag-drop-validation`
+    - `docs/update-readme`
+  </Step>
+
+  <Step title="Make your changes">
+    Write your code, following the guidelines below. Make sure to:
+    - Test your changes thoroughly
+    - Follow the existing code style
+    - Add comments for complex logic
+    - Update documentation if needed
+  </Step>
+
+  <Step title="Commit your changes">
+    Write clear, descriptive commit messages:
+
+    ```bash
+    git add .
+    git commit -m "Add subtitle preview feature"
+    ```
+
+    <Note>
+      Use present tense ("Add feature" not "Added feature") and be specific about what changed.
+    </Note>
+  </Step>
+
+  <Step title="Push and create a pull request">
+    Push your changes to your fork:
+
+    ```bash
+    git push origin feature/your-feature-name
+    ```
+
+    Then create a pull request on GitHub from your fork to the main repository.
+  </Step>
+</Steps>
+
+## Contribution guidelines
+
+### Code style
+
+Follow the existing code style in the project:
+
+- **Indentation**: Use consistent indentation (the project uses spaces)
+- **Naming**: Use descriptive variable and function names
+- **Comments**: Add comments for complex logic or non-obvious behavior
+- **jQuery**: Follow jQuery conventions for DOM manipulation
+
+<CodeGroup>
+```javascript Good
+// Good: Descriptive function name and clear logic
+function validateVideoFileExtension(fileName) {
+    var extensionLists = ['m4v', 'avi', 'mpg', 'mp4', 'webm', 'mkv'];
+    return extensionLists.indexOf(fileName.split('.').pop()) > -1;
+}
+```
+
+```javascript Bad
+// Bad: Unclear function name and no validation
+function check(f) {
+    return true;
+}
+```
+</CodeGroup>
+
+### Testing your changes
+
+Before submitting a pull request:
+
+<AccordionGroup>
+  <Accordion title="Test all features">
+    - **Drag and drop**: Try single and multiple files
+    - **Search**: Test with various movie/series names
+    - **Language selection**: Switch between different languages
+    - **Download**: Verify subtitles download correctly
+  </Accordion>
+
+  <Accordion title="Test edge cases">
+    - Invalid file types
+    - Network errors
+    - No search results
+    - Multiple subtitle matches
+    - Empty search queries
+  </Accordion>
+
+  <Accordion title="Test on your platform">
+    Test the app on your operating system:
+    - Windows: Run `npm run dist:win`
+    - macOS: Run `npm run dist:mac`
+    - Linux: Run `npm run dist:linux`
+  </Accordion>
+</AccordionGroup>
+
+### Commit message format
+
+Write clear commit messages that explain what and why:
+
+<CodeGroup>
+```text Good
+Add subtitle preview before download
+
+Implemented a modal that shows subtitle content preview before
+downloading. This helps users verify they're getting the correct
+subtitle file.
+```
+
+```text Bad
+fixed stuff
+```
+</CodeGroup>
+
+### Pull request guidelines
+
+When creating a pull request:
+
+1. **Title**: Use a clear, descriptive title
+2. **Description**: Explain what changes you made and why
+3. **Screenshots**: Include screenshots for UI changes
+4. **Testing**: Describe how you tested your changes
+5. **Breaking changes**: Note any breaking changes
+
+<Note>
+  Your pull request will be reviewed by maintainers. Be patient and responsive to feedback.
+</Note>
+
+## Types of contributions
+
+### Adding features
+
+When adding new features:
+
+1. **Discuss first**: Open an issue to discuss the feature before implementing
+2. **Keep it simple**: Follow the existing UI/UX patterns
+3. **Update docs**: Add documentation for new features
+4. **Test thoroughly**: Ensure the feature works across platforms
+
+### Fixing bugs
+
+When fixing bugs:
+
+1. **Reference the issue**: Link to the GitHub issue in your PR
+2. **Explain the fix**: Describe what caused the bug and how you fixed it
+3. **Add prevention**: Consider how to prevent similar bugs in the future
+4. **Test the fix**: Verify the bug is actually fixed
+
+### Improving documentation
+
+Documentation improvements are always welcome:
+
+- Fix typos and grammar
+- Add code examples
+- Clarify confusing sections
+- Add troubleshooting tips
+- Create tutorials
+
+### Adding subtitle sources
+
+To add a new subtitle source:
+
+1. Find a subtitle API with good coverage
+2. Add the npm package to dependencies
+3. Implement the search logic in `app/renderer/checksub.js`
+4. Update the search order in `app/renderer/index.js`
+5. Test with various video files
+
+Current sources:
+- SubDB (hash-based matching)
+- OpenSubtitles (search and metadata)
+
+Planned sources:
+- Addic7ed (TV shows)
+
+## Code review process
+
+After submitting a pull request:
+
+1. **Automated checks**: Wait for any automated checks to complete
+2. **Maintainer review**: A maintainer will review your code
+3. **Feedback**: Address any requested changes
+4. **Approval**: Once approved, your PR will be merged
+5. **Recognition**: Your contribution will be credited
+
+<Note>
+  Contributors are recognized on the [gSubs Contributors page](http://cholaware.com/gsubs/contributors.html).
+</Note>
+
+## Community guidelines
+
+Please be respectful and constructive:
+
+- **Be respectful**: Treat everyone with respect
+- **Be patient**: Maintainers are volunteers
+- **Be constructive**: Provide helpful feedback
+- **Be collaborative**: Work together to improve gSubs
+
+## Getting help
+
+If you need help:
+
+1. **Check the docs**: Read the [setup guide](/development/setup) and [architecture guide](/development/architecture)
+2. **Search issues**: Look for similar issues on GitHub
+3. **Ask questions**: Open a GitHub issue with your question
+4. **Be specific**: Provide details about your environment and the problem
+
+## License
+
+By contributing to gSubs, you agree that your contributions will be licensed under the [MIT License](https://github.com/sanjevirau/gsubs/blob/master/LICENSE).
+
+All contributions are copyright © [Cholaware](https://cholaware.com).
+
+## Financial contributions
+
+If you'd like to support gSubs financially:
+
+- **PayPal**: [paypal.me/sanjevirau](https://paypal.me/sanjevirau)
+- **Use case**: Donations help fund development and releases for macOS and Linux
+
+## Next steps
+
+Ready to contribute?
+
+<CardGroup cols={2}>
+  <Card title="Setup guide" icon="code" href="/development/setup">
+    Get your development environment ready
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/development/architecture">
+    Learn how gSubs works internally
+  </Card>
+  <Card title="Building" icon="hammer" href="/development/building">
+    Build gSubs for distribution
+  </Card>
+  <Card title="GitHub issues" icon="github" href="https://github.com/sanjevirau/gsubs/issues">
+    Find issues to work on
+  </Card>
+</CardGroup>
+
+---
+
+Thank you for contributing to gSubs! Every contribution, no matter how small, helps make gSubs better for everyone.

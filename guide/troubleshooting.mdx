@@ -1,0 +1,557 @@
+---
+title: Troubleshooting
+description: Solutions to common issues when finding and downloading subtitles
+---
+
+Encountered an issue with gSubs? This guide covers common problems and their solutions based on real error scenarios from the codebase.
+
+## Connection and network issues
+
+### "Error finding subtitle" message appears
+
+This error occurs when gSubs can't connect to subtitle sources:
+
+```javascript
+// From index.js:431-442
+function showErrorPage(token) {
+    if (globalToken == token && globalToken.length != 0) {
+        console.log('Error Finding Single Sub');
+        $(".main-window").css("background", "linear-gradient(to bottom,  #DD1818 0%, #862626 85%,#DD1818 100%)");
+        $("#searching-sub-for-id").text("Error finding subtitle for");
+        $("#loading-id").hide();
+        $('#error-id').fadeIn('slow');
+        $(".fail-to-find-text").text("Please check your internet connection before retrying.");
+    }
+}
+```
+
+**Symptoms:**
+- Red background appears
+- Error icon displayed
+- Message: "Please check your internet connection before retrying"
+
+**Solutions:**
+
+<AccordionGroup>
+  <Accordion title="Check your internet connection">
+    gSubs requires an active internet connection to access SubDB and OpenSubtitles.
+    
+    Verify:
+    1. Your device is connected to the internet
+    2. You can access other websites
+    3. No firewall is blocking gSubs
+    4. Your network allows HTTPS connections
+  </Accordion>
+
+  <Accordion title="Retry the search">
+    Network issues can be temporary:
+    
+    1. Click the home button (top-left)
+    2. Wait a few seconds
+    3. Drag your video file again
+    4. The search will restart with a fresh connection
+  </Accordion>
+
+  <Accordion title="Check firewall settings">
+    gSubs needs to connect to:
+    - SubDB API servers
+    - OpenSubtitles API servers (via HTTPS)
+    
+    Ensure your firewall allows:
+    - Outbound HTTPS connections
+    - Electron applications to access the network
+  </Accordion>
+
+  <Accordion title="Verify API availability">
+    Rarely, subtitle sources may be down for maintenance.
+    
+    Check:
+    - [OpenSubtitles status](https://www.opensubtitles.org)
+    - Try again in a few minutes
+    - Test with a different video file
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+  If you consistently see error messages across multiple videos and different times, check your network configuration or antivirus software settings.
+</Warning>
+
+## File-related issues
+
+### "Only video files are supported" message
+
+This error occurs when you drop an unsupported file:
+
+```javascript
+// From index.js:395-400
+function validateVideoFileExtension(fName) {
+    var extensionLists = ['m4v', 'avi', 'mpg', 'mp4', 'webm', 'mkv'];
+    return extensionLists.indexOf(fName.split('.').pop()) > -1;
+}
+```
+
+**Supported formats:**
+- `.mp4` - MPEG-4 video
+- `.mkv` - Matroska video
+- `.avi` - Audio Video Interleave
+- `.m4v` - iTunes video
+- `.mpg` - MPEG video
+- `.webm` - WebM video
+
+**Solutions:**
+
+<Steps>
+  <Step title="Verify file extension">
+    Right-click your file and check "Properties" or "Get Info" to confirm the actual file extension.
+  </Step>
+
+  <Step title="Convert unsupported formats">
+    If your video uses a different format (e.g., `.mov`, `.flv`, `.wmv`):
+    
+    1. Use a video converter tool (HandBrake, FFmpeg, VLC)
+    2. Convert to a supported format like `.mp4` or `.mkv`
+    3. Try again with the converted file
+  </Step>
+
+  <Step title="Check for hidden extensions">
+    On Windows, ensure "File name extensions" are visible:
+    - Open File Explorer
+    - Click View → Show → File name extensions
+    
+    Your file might be `video.mp4.txt` instead of `video.mp4`.
+  </Step>
+</Steps>
+
+<Tip>
+  `.mp4` and `.mkv` are the most widely supported formats and work best with gSubs.
+</Tip>
+
+### File path issues in batch processing
+
+During batch processing, some files might not be detected:
+
+```javascript
+// From index.js:331-361
+function traverseFileTree(item, path, token) {
+    if (item.isFile) {
+        item.file(function (val) {
+            var fullName = val.name;
+            var filePath = val.path;
+            
+            if (validateVideoFileExtension(fullName)) {
+                // File is valid and will be processed
+            }
+        });
+    } else if (item.isDirectory) {
+        // Recursively search subdirectories
+    }
+}
+```
+
+**Common causes:**
+- Files with special characters in names
+- Very long file paths (>260 characters on Windows)
+- Files in system-protected directories
+- Symbolic links or shortcuts
+
+**Solutions:**
+- Rename files to use simple characters
+- Move files to a shorter path
+- Copy files instead of using shortcuts
+
+## Subtitle search issues
+
+### "Couldn't find subtitle" message
+
+This happens when both SubDB and OpenSubtitles fail to find matches:
+
+```javascript
+// From index.js:418-428
+function showFailurePage(token) {
+    if (globalToken == token && globalToken.length != 0) {
+        console.log('Failed finding subtitle');
+        $(".main-window").css("background", "linear-gradient(to bottom,  #DD1818 0%, #862626 85%,#DD1818 100%)");
+        $("#searching-sub-for-id").text("Couldn't find subtitle for");
+        $("#loading-id").hide();
+        $('#sad-id').fadeIn('slow');
+    }
+}
+```
+
+**Why this happens:**
+
+<CardGroup cols={2}>
+  <Card title="Uncommon video" icon="film">
+    Your video is rare or not in subtitle databases. Personal recordings, home videos, or very new releases.
+  </Card>
+  <Card title="Wrong language" icon="language">
+    Subtitles may not exist in your selected language. Try switching to English or another common language.
+  </Card>
+  <Card title="Modified video" icon="scissors">
+    Edited or trimmed videos have different hashes, preventing SubDB matches.
+  </Card>
+  <Card title="Incorrect filename" icon="file">
+    The filename doesn't match any known releases, preventing OpenSubtitles from finding matches.
+  </Card>
+</CardGroup>
+
+**Solutions:**
+
+<Steps>
+  <Step title="Try a different language">
+    Click the language dropdown (top-right) and select a more common language:
+    
+    ```javascript
+    // From index.js:151-169
+    $('#language-select-id').on('click', e => {
+        var value = $('#language-select-id').dropdown('get value');
+        if (value == '') {
+            value = store.get('lang');
+        }
+        store.set('lang', value);
+    });
+    ```
+    
+    English (`en`) typically has the most subtitles available.
+  </Step>
+
+  <Step title="Rename your file to match a known release">
+    If you know the movie or show name:
+    
+    Bad: `movie1.mp4` or `video (1).mkv`
+    
+    Good: `Inception.2010.1080p.BluRay.x264.mkv`
+    
+    OpenSubtitles relies heavily on filename matching.
+  </Step>
+
+  <Step title="Use the search feature">
+    Instead of drag-and-drop:
+    
+    ```javascript
+    // From index.js:172-214
+    $("#search-box-id").keyup(function (event) {
+        if (event.keyCode === 13) {
+            var searchBoxValue = $('#search-box-id').val();
+            querySearch(searchBoxValue, showQuerySuccessPage, showQueryFailurePage);
+        }
+    });
+    ```
+    
+    1. Type the movie or show name in the search box
+    2. Press Enter
+    3. Browse results and download manually
+  </Step>
+
+  <Step title="Try an external subtitle site">
+    If gSubs can't find anything:
+    - Visit OpenSubtitles.org directly
+    - Search manually for your content
+    - Download the `.srt` file
+    - Place it in the same folder as your video with the same name
+  </Step>
+</Steps>
+
+<Note>
+  For very obscure or personal videos, subtitles may simply not exist. Consider creating them using subtitle editing software.
+</Note>
+
+## Download issues
+
+### Download fails with network error
+
+When clicking a download button, the download might fail:
+
+```javascript
+// From index.js:797-802
+request.on('error', function (err) {
+    fs.unlinkSync(fileName);
+    $(this).html('<span class="lnr lnr-cross-circle"></span>');
+    return console.log(err.message);
+});
+```
+
+**Symptoms:**
+- Download button shows a cross icon
+- Subtitle file not created
+- Console shows error message
+
+**Solutions:**
+
+<AccordionGroup>
+  <Accordion title="Check response status">
+    The download might fail if the subtitle URL is invalid:
+    
+    ```javascript
+    // From index.js:783-786
+    if (response.statusCode !== 200) {
+        return console.log('Response status was ' + response.statusCode);
+    }
+    ```
+    
+    Try:
+    - Clicking a different subtitle option
+    - Restarting the search from home
+    - Checking your internet connection
+  </Accordion>
+
+  <Accordion title="Verify file permissions">
+    gSubs needs write permission to save the subtitle:
+    
+    ```javascript
+    // From index.js:25
+    var subPath = path.join(path.dirname(filePathIn), 
+                            path.basename(filePathIn, path.extname(fileNameIn)) + ".srt");
+    ```
+    
+    Ensure:
+    - You have write permission to the video's directory
+    - The directory isn't on a read-only drive
+    - Antivirus isn't blocking file creation
+  </Accordion>
+
+  <Accordion title="Clear disk space">
+    Subtitle downloads require disk space (usually small, less than 100KB):
+    - Check available disk space
+    - Clear temporary files if needed
+    - Ensure the target drive isn't full
+  </Accordion>
+</AccordionGroup>
+
+### Download succeeds but file not found
+
+The download completes, but you can't find the subtitle file:
+
+**Where subtitles are saved:**
+
+```javascript
+// For drag-and-drop files
+var subPath = path.join(path.dirname(filePath), fileName);
+// Saves to the same directory as the video
+
+// For search query results
+var subPath = path.join(os.homedir(), 'Desktop', fileName);
+// Saves to your Desktop
+```
+
+**Check these locations:**
+
+<Steps>
+  <Step title="Same folder as video (drag-and-drop)">
+    If you used drag-and-drop:
+    1. Navigate to your video file's folder
+    2. Look for a `.srt` file with the same name
+    3. Example: `movie.mp4` → `movie.srt`
+  </Step>
+
+  <Step title="Desktop (search query)">
+    If you used the search feature:
+    1. Check your Desktop folder
+    2. Look for the subtitle filename you selected
+    3. You may need to specify save location in the dialog
+  </Step>
+
+  <Step title="Check file explorer settings">
+    Ensure hidden files are visible:
+    - Windows: File Explorer → View → Hidden items
+    - macOS: Cmd+Shift+. to show hidden files
+  </Step>
+</Steps>
+
+<Tip>
+  The green checkmark icon confirms successful download. If you see it, the file was definitely saved.
+</Tip>
+
+## Subtitle synchronization issues
+
+### Subtitles are out of sync with video
+
+This typically happens with OpenSubtitles results (not SubDB):
+
+**Why sync issues occur:**
+- Different video source than the subtitle
+- Video has been edited or trimmed
+- Wrong subtitle selected from deep search results
+- Frame rate differences
+
+**Solutions:**
+
+<Steps>
+  <Step title="Try a different subtitle from deep search">
+    If you used deep search and selected a subtitle:
+    1. Click the home button
+    2. Return to the results table
+    3. Click the arrow icon again
+    4. Try a different subtitle option
+    
+    Look for filenames that exactly match your video's release group and quality.
+  </Step>
+
+  <Step title="Adjust timing in your video player">
+    Most video players allow subtitle timing adjustment:
+    
+    **VLC:**
+    - Press H to delay subtitles
+    - Press G to advance subtitles
+    - Each press adjusts by 50ms
+    
+    **MPC-HC:**
+    - Press + to delay
+    - Press - to advance
+    
+    **mpv:**
+    - Press Z to delay by 100ms
+    - Press X to advance by 100ms
+  </Step>
+
+  <Step title="Use subtitle editing software">
+    For permanent fixes:
+    1. Open the `.srt` file in Subtitle Edit or Aegisub
+    2. Shift all timings by the required amount
+    3. Save the corrected file
+  </Step>
+
+  <Step title="Re-search with better filename">
+    Rename your video to match known releases:
+    ```
+    Generic: video.mp4
+    Better: Movie.Name.2024.1080p.WEB-DL.x264-GROUP.mp4
+    ```
+    
+    Then search again for better matches.
+  </Step>
+</Steps>
+
+<Note>
+  SubDB results are always perfectly synced. If you get a SubDB match (green checkmark immediately), synchronization issues are extremely rare.
+</Note>
+
+## Application issues
+
+### gSubs freezes or becomes unresponsive
+
+**Possible causes:**
+- Processing too many files simultaneously
+- Network timeout
+- Insufficient system resources
+
+**Solutions:**
+
+<Steps>
+  <Step title="Close and restart gSubs">
+    1. Close the application completely
+    2. Wait 10 seconds
+    3. Relaunch gSubs
+    4. Try with fewer files if batch processing
+  </Step>
+
+  <Step title="Process files in smaller batches">
+    Instead of 50+ files at once:
+    1. Process 10-20 files per batch
+    2. Wait for completion
+    3. Process the next batch
+  </Step>
+
+  <Step title="Check system resources">
+    - Close other applications
+    - Ensure sufficient RAM available
+    - Check CPU usage in Task Manager
+  </Step>
+</Steps>
+
+### Updates not installing
+
+If the update notification appears but installation fails:
+
+```javascript
+// From index.js:40-44
+ipcRenderer.on('updateReady', function (event, text) {
+    console.log("triggered updateReady");
+    $('#update-nag').nag('show');
+});
+```
+
+**Solutions:**
+- Ensure gSubs has write permission to its installation directory
+- Run as administrator (Windows) or grant permissions (macOS)
+- Manually download the latest version from the website
+- Check firewall isn't blocking the download
+
+## Getting more help
+
+### Enable developer console
+
+For advanced troubleshooting, check the developer console:
+
+1. In gSubs, press `Ctrl+Shift+I` (Windows/Linux) or `Cmd+Option+I` (macOS)
+2. Click the "Console" tab
+3. Reproduce your issue
+4. Look for error messages in red
+
+**Common console messages:**
+
+```javascript
+// Success messages
+console.log('Success finding subtitle');
+console.log('Successfully found subtitle using normal scan');
+
+// Failure messages
+console.log('Failed finding subtitle');
+console.log('Failed to find subtitle using normal scan');
+console.log('Error Finding Single Sub');
+console.log('No search result found');
+
+// Network issues
+console.log('Response status was ' + response.statusCode);
+console.log(err.message);
+```
+
+### Report issues
+
+If you've tried everything and still have problems:
+
+<Card title="GitHub Issues" icon="github" href="https://github.com/sanjevirau/gsubs/issues">
+  Report bugs and request features on the gSubs GitHub repository
+</Card>
+
+**When reporting an issue, include:**
+- Your operating system and version
+- gSubs version
+- Steps to reproduce the problem
+- Console error messages (if any)
+- Example filename that fails
+- Whether the issue occurs with all files or specific ones
+
+<Tip>
+  Before reporting, check existing GitHub issues - your problem might already be solved!
+</Tip>
+
+## Prevention tips
+
+Avoid common issues:
+
+<CardGroup cols={2}>
+  <Card title="Maintain stable internet" icon="wifi">
+    Ensure consistent network connection during searches. Don't switch networks mid-search.
+  </Card>
+  <Card title="Use standard filenames" icon="file-signature">
+    Name videos clearly with movie/show title, year, and quality for better OpenSubtitles matching.
+  </Card>
+  <Card title="Organize files properly" icon="folder-tree">
+    Keep videos in accessible directories with appropriate permissions.
+  </Card>
+  <Card title="Process reasonable batches" icon="layer-group">
+    Stick to 20-30 files per batch for optimal performance.
+  </Card>
+</CardGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Subtitle sources" icon="database" href="/guide/subtitle-sources">
+    Understand how SubDB and OpenSubtitles work
+  </Card>
+  <Card title="Finding subtitles" icon="magnifying-glass" href="/guide/finding-subtitles">
+    Review the complete subtitle search workflow
+  </Card>
+</CardGroup>

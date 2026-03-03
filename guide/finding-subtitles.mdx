@@ -1,0 +1,172 @@
+---
+title: Finding subtitles
+description: Complete guide to finding subtitles for a single video file
+---
+
+Learn how to find and download subtitles for your video files using gSubs' drag-and-drop interface.
+
+## How it works
+
+gSubs uses a two-tier search system to find the perfect subtitle match:
+
+1. **Fast search with SubDB** - Hash-based matching for exact subtitle synchronization
+2. **Deep search with OpenSubtitles** - Filename and metadata-based search when exact matches aren't found
+
+This approach ensures you get perfectly synced subtitles when available, with fallback options when needed.
+
+## Finding subtitles for a video
+
+<Steps>
+  <Step title="Launch gSubs">
+    Open the application. You'll see the drag-and-drop zone with a purple gradient background.
+  </Step>
+
+  <Step title="Select your language">
+    Click the language dropdown in the top-right corner to select your preferred subtitle language. gSubs supports 10 languages: English, Español, Français, Italiano, Nederlands, Polski, Português, Român, Svenska, and Türkçe.
+
+    Your language preference is saved automatically for future sessions.
+  </Step>
+
+  <Step title="Drag and drop your video">
+    Drag a single video file into the drop zone. As you drag the file over the zone, you'll see a "+1" indicator.
+
+    Supported video formats:
+    - `.mp4`
+    - `.mkv`
+    - `.avi`
+    - `.m4v`
+    - `.mpg`
+    - `.webm`
+  </Step>
+
+  <Step title="Wait for the search to complete">
+    gSubs automatically begins searching:
+    
+    1. First, it computes a hash of your video file
+    2. Searches SubDB using the hash for an exact match
+    3. If found, downloads the subtitle automatically
+    4. If not found, initiates a deep search using OpenSubtitles
+  </Step>
+
+  <Step title="Download completes automatically or choose from results">
+    **If SubDB finds a match:**
+    - The screen turns green
+    - Subtitle downloads automatically to the same folder as your video
+    - A play button appears to open your video
+
+    **If deep search returns results:**
+    - Multiple subtitle options appear in a table
+    - Click the download button next to your preferred subtitle
+    - Subtitle saves to the same folder as your video with matching filename
+  </Step>
+</Steps>
+
+## Understanding the search process
+
+### SubDB hash-based search
+
+The initial search uses SubDB's hash-based matching system:
+
+```javascript
+// From checksub.js:29-49
+subdb.computeHash(filePathIn, function (err, res) {
+    var hash = res;
+    
+    subdb.api.search_subtitles(hash, function (err, res) {
+        subdb.api.download_subtitle(hash, languageIn, subPath, function (err, res) {
+            if (res == '') {
+                // Hash match failed, proceed to deep search
+            } else {
+                // Subtitle found and downloaded
+            }
+        });
+    });
+});
+```
+
+This method:
+- Generates a unique hash from your video file's content
+- Searches SubDB's database for exact matches
+- Provides perfectly synchronized subtitles when found
+- Completes in seconds
+
+<Tip>
+  Hash-based matching from SubDB provides the most accurate subtitle synchronization since it matches your exact video file.
+</Tip>
+
+### OpenSubtitles deep search
+
+If SubDB doesn't find a match, gSubs automatically performs a deep search:
+
+```javascript
+// From checksub.js:58-70
+OpenSubtitles.search({
+    sublanguageid: languageCodeto3Letter(languageIn),
+    path: filePathIn,
+    filename: fileNameIn,
+    query: fileNameIn,
+    limit: 'all'
+}).then(result => {
+    if (jQuery.isEmptyObject(result)) {
+        failureCall(token);
+    } else {
+        partialSuccessCall(result, filePathIn, token);
+    }
+});
+```
+
+This method:
+- Searches based on filename and metadata
+- Returns multiple subtitle options
+- Shows results in a table for you to choose from
+- May require manual selection of the best match
+
+<Note>
+  Deep search results may not be perfectly synchronized with your video. You might need to adjust subtitle timing in your video player.
+</Note>
+
+## What happens after download
+
+When gSubs successfully downloads a subtitle:
+
+1. The subtitle file is saved with the same name as your video
+2. It's placed in the same directory as your video file
+3. The file extension is `.srt`
+
+For example:
+- Video: `/Movies/Example.Movie.2024.mp4`
+- Subtitle: `/Movies/Example.Movie.2024.srt`
+
+This naming convention ensures most video players automatically load the subtitle when you open the video.
+
+## Playing your video
+
+After a successful download:
+
+1. Click the play button that appears in the bottom-right corner
+2. Your video opens in your default video player
+3. The subtitle should load automatically
+
+<Tip>
+  If the subtitle doesn't load automatically, check your video player's subtitle settings or manually load the `.srt` file.
+</Tip>
+
+## Returning to home
+
+Click the home button (top-left corner) at any time to:
+- Return to the main screen
+- Start a new search
+- Clear the current results
+
+The home button changes to a back arrow when you're viewing deep search results, allowing you to return to the previous results screen.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Batch processing" icon="layer-group" href="/guide/batch-processing">
+    Process multiple video files at once
+  </Card>
+  <Card title="Subtitle sources" icon="database" href="/guide/subtitle-sources">
+    Learn more about SubDB and OpenSubtitles
+  </Card>
+</CardGroup>

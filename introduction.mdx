@@ -1,0 +1,97 @@
+---
+title: Introduction
+description: Meet gSubs - a desktop app that finds you the perfect subtitle match for your videos
+---
+
+<img
+  className="block dark:hidden"
+  src="/images/gsubs-banner.png"
+  alt="gSubs Banner"
+/>
+<img
+  className="hidden dark:block"
+  src="/images/gsubs-banner.png"
+  alt="gSubs Banner"
+/>
+
+## What is gSubs?
+
+gSubs is a multi-platform, open-source desktop application built with Electron that finds the perfect subtitle match for your videos. Simply drag and drop your video files to get started - no more browsing through mysterious directories or searching on sketchy websites.
+
+<Note>
+  gSubs is completely free and open-source, licensed under MIT.
+</Note>
+
+## Key features
+
+gSubs offers powerful features to make subtitle hunting effortless:
+
+<CardGroup cols={2}>
+  <Card title="Drag & drop" icon="hand-pointer">
+    Just drag and drop video files to search for subtitles. No browsing through directories needed.
+  </Card>
+  
+  <Card title="Multiple files" icon="layer-group">
+    Process entire seasons at once. gSubs handles multiple files simultaneously and finds subtitles for each one.
+  </Card>
+  
+  <Card title="Search subtitles" icon="magnifying-glass">
+    Don't have the video file yet? Use the search function to find subtitles by movie or series name.
+  </Card>
+  
+  <Card title="10 languages" icon="globe">
+    Find subtitles in English, Español, Français, Italiano, Nederlands, Polski, Português, Român, Svenska, and Türkçe.
+  </Card>
+  
+  <Card title="Auto update" icon="arrow-rotate-right">
+    gSubs automatically downloads and installs the latest release. No manual updates required.
+  </Card>
+  
+  <Card title="Multiple sources" icon="database">
+    Searches SubDB first, then OpenSubtitles to maximize your chances of finding the perfect match.
+  </Card>
+</CardGroup>
+
+## Supported video formats
+
+gSubs supports the most common video file formats:
+
+- MP4 (`.mp4`)
+- AVI (`.avi`)
+- MKV (`.mkv`)
+- MPG (`.mpg`)
+- WebM (`.webm`)
+- M4V (`.m4v`)
+
+## Get started
+
+<CardGroup cols={2}>
+  <Card
+    title="Installation"
+    icon="download"
+    href="/installation"
+  >
+    Download and install gSubs on Windows, macOS, or Linux
+  </Card>
+  
+  <Card
+    title="Quickstart"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Download your first subtitle in under a minute
+  </Card>
+</CardGroup>
+
+## How it works
+
+When you drag and drop a video file, gSubs searches for subtitles using a two-tier approach:
+
+1. **SubDB lookup**: First, gSubs checks SubDB using the video file's hash for an exact match
+2. **OpenSubtitles search**: If no match is found, gSubs performs a deep search on OpenSubtitles using the filename and metadata
+
+This dual-source strategy ensures you get the most accurate subtitle match possible.
+
+<Tip>
+  For best results, keep your video files named clearly with the movie or episode title.
+</Tip>

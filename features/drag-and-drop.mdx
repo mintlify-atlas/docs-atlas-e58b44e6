@@ -1,0 +1,104 @@
+---
+title: Drag and drop
+description: Find subtitles instantly by dragging video files into gSubs
+---
+
+The drag-and-drop feature lets you quickly find and download subtitles by simply dragging video files or folders into the gSubs window. This is the fastest way to get subtitles for your videos.
+
+## How it works
+
+When you drag files into gSubs, the app:
+
+1. Validates that the files are supported video formats
+2. Computes a hash of each video file
+3. Searches SubDB and OpenSubtitles for matching subtitles
+4. Automatically downloads and saves subtitles next to your video files
+
+## Drag a single video
+
+<Steps>
+  <Step title="Open gSubs">
+    Launch the app and you'll see the circular drag-and-drop zone with the message "Drag a movie or episode here".
+  </Step>
+
+  <Step title="Drag your video file">
+    Drag a video file over the drop zone. You'll see the zone highlight and display "+1" to indicate one file is being added.
+    
+    ```javascript
+    // The app shows the number of files being dragged
+    $("#drag-caption-id-add-one").text("+" + event.dataTransfer.items.length);
+    ```
+  </Step>
+
+  <Step title="Drop the file">
+    Release the file in the drop zone. gSubs will immediately start searching for subtitles.
+  </Step>
+
+  <Step title="Wait for results">
+    The app displays a loading animation with the message "Searching subtitle for [filename]". When complete, you'll see either:
+    - A checkmark icon if the subtitle was found and downloaded successfully
+    - A sad face icon if no subtitle was found
+    - An error icon if there was a connection issue
+  </Step>
+</Steps>
+
+<Tip>
+After a successful download, you can click the "Play with subtitle" button to open the video in your default video player with the subtitle file automatically loaded.
+</Tip>
+
+## Supported video formats
+
+The drag-and-drop feature supports the following video file formats:
+
+- `.m4v`
+- `.avi`
+- `.mpg`
+- `.mp4`
+- `.webm`
+- `.mkv`
+
+```javascript
+// File validation from source code
+function validateVideoFileExtension(fName) {
+    var extensionLists = ['m4v', 'avi', 'mpg', 'mp4', 'webm', 'mkv'];
+    return extensionLists.indexOf(fName.split('.').pop()) > -1;
+}
+```
+
+<Warning>
+If you drag a non-video file, gSubs will shake the drop zone and display "Only video files are supported".
+</Warning>
+
+## Visual feedback
+
+The drag-and-drop zone provides clear visual feedback at every stage:
+
+- **Hover state**: The zone highlights when you drag files over it
+- **File count**: Shows the number of files being dragged (e.g., "+3")
+- **Search box hides**: The search box fades out when files are being dragged to reduce clutter
+- **Loading animation**: Four animated dots appear while searching
+- **Result icons**: Checkmark, sad face, or error icon based on the outcome
+
+## Where subtitles are saved
+
+When you drag and drop a video file, gSubs automatically saves the subtitle file in the same directory as your video:
+
+```javascript
+// Subtitle is saved with the same name as the video
+var subPath = path.join(
+  path.dirname(filePathIn), 
+  path.basename(filePathIn, path.extname(fileNameIn)) + ".srt"
+);
+```
+
+For example:
+- Video: `/Movies/Blade.Runner.2049.mp4`
+- Subtitle: `/Movies/Blade.Runner.2049.srt`
+
+<Info>
+The subtitle file is automatically named to match your video file, so most video players will load it automatically when you play the video.
+</Info>
+
+## Return to home
+
+After viewing the results, click the home button (house icon) in the top-left corner to return to the main screen and drag more files.

@@ -1,80 +1,261 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Download your first subtitle in under a minute with gSubs
 ---
 
-## Get started in three steps
+This guide will walk you through downloading your first subtitle using gSubs. You'll learn the drag-and-drop workflow that makes subtitle hunting effortless.
 
-Get your documentation site running locally and make your first customization.
+<Note>
+  Before starting, make sure you have [installed gSubs](/installation) on your system.
+</Note>
 
-### Step 1: Set up your local environment
+## Your first subtitle download
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+<Steps>
+  <Step title="Launch gSubs">
+    Open gSubs from your applications menu. You'll see the main interface with a purple gradient background and a drag-and-drop zone in the center.
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    <img src="/images/gsubs-home.png" alt="gSubs home screen" />
+  </Step>
+  
+  <Step title="Select your language">
+    Click the language selector in the bottom right corner and choose your preferred subtitle language. gSubs defaults to English.
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+    Available languages:
+    - English (en)
+    - Español (es)
+    - Français (fr)
+    - Italiano (it)
+    - Nederlands (nl)
+    - Polski (pl)
+    - Português (pt)
+    - Român (ro)
+    - Svenska (sv)
+    - Türkçe (tr)
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    <Tip>
+      Your language preference is saved automatically and will be remembered for future sessions.
+    </Tip>
+  </Step>
+  
+  <Step title="Drag and drop your video file">
+    Drag a video file from your file explorer and drop it onto the gSubs window. The interface will show `+1` when hovering over the drop zone.
+    
+    Supported formats: `.mp4`, `.avi`, `.mkv`, `.mpg`, `.webm`, `.m4v`
+    
+    <img src="/images/drag-drop.png" alt="Dragging a video file" />
+    
+    <Warning>
+      gSubs only accepts video files. If you drop a non-video file, you'll see a shake animation and an error message: "Only video files are supported".
+    </Warning>
+  </Step>
+  
+  <Step title="Wait for subtitle search">
+    gSubs will immediately start searching for subtitles:
+    
+    1. First, it checks **SubDB** using the video file's hash for an exact match
+    2. If no match is found, it performs a deep search on **OpenSubtitles** using the filename
+    
+    You'll see a loading animation with the message "Searching subtitle for [filename]".
+    
+    <img src="/images/searching.png" alt="Searching for subtitles" />
+  </Step>
+  
+  <Step title="Download the subtitle">
+    When gSubs finds a match:
+    
+    **For exact matches:**
+    - The background changes to green
+    - A checkmark appears with the message "Subtitle successfully downloaded for [filename]"
+    - The subtitle file (`.srt`) is automatically saved in the same directory as your video
+    - A play button appears to open the video with your default player
+    
+    <img src="/images/success.png" alt="Subtitle downloaded successfully" />
+    
+    **For multiple matches:**
+    - The background changes to green
+    - A table appears showing all potential subtitle matches
+    - Click the download icon next to your preferred subtitle
+    - The subtitle will be saved in the same directory as your video
+    
+    <img src="/images/multiple-results.png" alt="Multiple subtitle options" />
+  </Step>
+</Steps>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+<Note>
+  The subtitle file is automatically named to match your video file. For example, `movie.mp4` will get a subtitle named `movie.srt`.
+</Note>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+## Handling multiple files
 
-### Step 3: Go live
+gSubs can process entire seasons or multiple movies at once.
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+<Steps>
+  <Step title="Drop multiple video files">
+    Drag and drop multiple video files (or an entire folder) onto gSubs. The interface will show the total count, like `+12` for twelve files.
+  </Step>
+  
+  <Step title="Watch the progress">
+    gSubs displays a table with all your video files and their search status:
+    
+    - Loading spinner: Currently searching
+    - Green checkmark: Subtitle found and downloaded
+    - Red cross: No subtitle found
+    - Right arrow: Multiple matches available (click to view options)
+    
+    <img src="/images/multi-file.png" alt="Multiple file processing" />
+  </Step>
+  
+  <Step title="Review results">
+    Once all files are processed, the background turns green and shows:
+    
+    "Successfully found subtitles for the following videos"
+    
+    Files with a right arrow icon have multiple subtitle options. Click the arrow to view and download your preferred match.
+  </Step>
+</Steps>
+
+<Tip>
+  gSubs searches all files in parallel for maximum speed. Processing 10 files takes roughly the same time as processing 1 file.
+</Tip>
+
+## Using the search feature
+
+Don't have the video file yet? Use gSubs' search function to find subtitles by name.
+
+<Steps>
+  <Step title="Enter your search query">
+    Click the search box at the bottom of the gSubs window and type a movie or series name.
+    
+    <img src="/images/search-box.png" alt="Search box" />
+  </Step>
+  
+  <Step title="Press Enter">
+    Hit Enter to start the search. gSubs will query OpenSubtitles for matching subtitles in your selected language.
+  </Step>
+  
+  <Step title="Download from results">
+    gSubs displays a table with all matching subtitles. Click the download icon next to any result.
+    
+    You'll be prompted to choose a save location (defaults to Desktop).
+    
+    <img src="/images/search-results.png" alt="Search results" />
+  </Step>
+</Steps>
+
+## What if no subtitle is found?
+
+If gSubs can't find a subtitle match:
+
+1. The background turns red
+2. A sad face icon appears
+3. The message shows: "Couldn't find subtitle for [filename]"
+
+<img src="/images/no-match.png" alt="No subtitle found" />
+
+**Troubleshooting tips:**
+
+- Rename your video file to match the official movie/series title
+- Try removing extra information from the filename (resolution, codec, release group)
+- Use the search feature instead to manually find the subtitle
+- Check that your internet connection is working
+
+<Tip>
+  For TV shows, use the format: `Show.Name.S01E01.srt` (season and episode numbers help matching accuracy).
+</Tip>
+
+## Deep search feature
+
+When gSubs finds multiple potential matches during drag-and-drop, you can perform a deep search:
+
+1. Click the **right arrow icon** next to any file in the results table
+2. gSubs performs an advanced search using OpenSubtitles with multiple parameters:
+   - File path hash
+   - Exact filename
+   - Query by filename
+3. A new table appears with refined subtitle matches
+4. Download your preferred option
+
+```javascript
+// Deep search parameters
+OpenSubtitles.search({
+  sublanguageid: 'eng',
+  path: '/path/to/video.mp4',
+  filename: 'video.mp4',
+  query: 'video.mp4',
+  limit: 'all'
+})
+```
+
+<Note>
+  Deep search is more thorough but may return more results to choose from. It's perfect when you need the most accurate subtitle match.
+</Note>
+
+## Understanding the interface
+
+The gSubs interface uses color-coding to show status:
+
+| Background Color | Meaning |
+|------------------|----------|
+| Purple gradient | Home screen / Ready for input |
+| Purple (loading) | Searching for subtitles |
+| Green gradient | Success / Subtitles found |
+| Red gradient | Error / No subtitles found |
+
+**Icons:**
+
+- Home icon: Return to main screen
+- Close icon: Quit gSubs
+- Play icon: Open video with default player
+- Download icon: Download a subtitle
+- Checkmark: Subtitle successfully downloaded
+- Cross: Subtitle search failed
+- Right arrow: View more subtitle options
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
+Now that you've downloaded your first subtitle, explore more features:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Process entire seasons" icon="layer-group">
+    Drop a folder with multiple episodes to batch process all files at once
+  </Card>
+  
+  <Card title="Try different languages" icon="language">
+    Switch between 10 supported languages to find subtitles in your preferred language
+  </Card>
+  
+  <Card title="Use search for upcoming releases" icon="magnifying-glass">
+    Search for movie/series subtitles before you have the video file
+  </Card>
+  
+  <Card title="Automatic updates" icon="arrow-rotate-right">
+    Keep gSubs up to date automatically - no manual downloads needed
+  </Card>
 </CardGroup>
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+## Tips for best results
+
+<Tip>
+  **Name your files clearly**: Use standard naming conventions like `Movie.Title.2020.mp4` or `Show.Name.S01E01.mp4` for best matching accuracy.
+</Tip>
+
+<Tip>
+  **Check your language setting**: Make sure you've selected the correct language before searching. The language preference is saved for future use.
+</Tip>
+
+<Tip>
+  **Internet connection required**: gSubs needs an active internet connection to search SubDB and OpenSubtitles. Check your connection if searches fail.
+</Tip>
+
+<Warning>
+  The subtitle will be saved in the same directory as your video file. Make sure you have write permissions for that location.
+</Warning>
+
+## Getting help
+
+If you encounter issues or have questions:
+
+- Check the [troubleshooting section](/installation#troubleshooting) in the Installation guide
+- Report issues on [GitHub Issues](https://github.com/sanjevirau/gsubs/issues)
+- Contribute to the project as it's open-source and welcomes contributions

@@ -1,0 +1,211 @@
+---
+title: Auto-update
+description: Keep gSubs up to date automatically with built-in update notifications and one-click installation
+---
+
+The auto-update feature ensures you always have the latest version of gSubs with new features, bug fixes, and improvements. Updates are downloaded automatically in the background and can be installed with a single click.
+
+## How auto-update works
+
+gSubs uses the `electron-updater` module to check for updates and manage the installation process:
+
+1. **Check on launch**: Every time gSubs starts, it checks for updates
+2. **Background download**: If an update is available, it downloads silently while you use the app
+3. **Notification**: When the download is complete, a notification bar appears at the top
+4. **One-click install**: Click the "Install & Restart" button to apply the update
+
+```javascript
+const autoUpdater = require("electron-updater").autoUpdater;
+
+app.on('ready', function() {
+    createWindow();
+    console.log('log message');
+    autoUpdater.checkForUpdates();
+});
+```
+
+## Update notification
+
+When an update has been downloaded and is ready to install, a notification bar appears at the top of the gSubs window:
+
+```html
+<div id="update-nag" class="ui inline nag">
+  <span class="title">New update is available.</span>
+  <button id="install-btn-id" class="positive small ui button">Install & Restart</button>
+  <i class="close icon"></i>
+</div>
+```
+
+The notification includes:
+- **Message**: "New update is available."
+- **Install button**: Green button to install and restart
+- **Close icon**: Dismiss the notification and install later
+
+<Info>
+If you close the notification without installing, the update will still be available. The notification will reappear the next time you launch gSubs.
+</Info>
+
+## Installing updates
+
+To install an update when the notification appears:
+
+<Steps>
+  <Step title="Notice the notification">
+    A banner appears at the top of the window saying "New update is available."
+  </Step>
+
+  <Step title="Save your work">
+    If you have any subtitle searches in progress, wait for them to complete or note which files still need processing.
+  </Step>
+
+  <Step title="Click Install & Restart">
+    Click the green button labeled "Install & Restart". gSubs will quit immediately.
+    
+    ```javascript
+    $('#install-btn-id').on('click', e => {
+        ipcRenderer.send('quitAndInstall');
+    });
+    
+    ipcMain.on("quitAndInstall", (event, arg) => {
+        autoUpdater.quitAndInstall();
+    });
+    ```
+  </Step>
+
+  <Step title="Wait for restart">
+    The app closes, installs the update, and relaunches automatically with the new version.
+  </Step>
+</Steps>
+
+<Warning>
+gSubs will close immediately when you click "Install & Restart". Make sure any subtitle downloads are complete before updating.
+</Warning>
+
+## Update events
+
+The auto-updater tracks several events during the update process:
+
+```javascript
+autoUpdater.on('error', err => console.log(err));
+autoUpdater.on('checking-for-update', () => console.log('checking-for-update'));
+autoUpdater.on('update-available', () => console.log('update-available'));
+autoUpdater.on('update-not-available', () => console.log('update-not-available'));
+
+autoUpdater.on('update-downloaded', (info) => {
+    console.log(info);
+    mainWindow.webContents.send('updateReady');
+});
+```
+
+These events allow gSubs to:
+- Log update activity for debugging
+- Show the notification only when an update is ready
+- Handle errors gracefully if the update check fails
+
+## Update communication flow
+
+The update system uses IPC (Inter-Process Communication) to coordinate between the main process and renderer process:
+
+### Main process → Renderer process
+
+When an update is downloaded:
+
+```javascript
+// main.js - Main process
+autoUpdater.on('update-downloaded', (info) => {
+    mainWindow.webContents.send('updateReady');
+});
+```
+
+### Renderer process receives message
+
+The renderer shows the notification:
+
+```javascript
+// index.js - Renderer process
+ipcRenderer.on('updateReady', function (event, text) {
+    console.log("triggered updateReady");
+    $('#update-nag').nag('show');
+});
+```
+
+### Renderer process → Main process
+
+When you click the install button:
+
+```javascript
+// index.js - Renderer process
+$('#install-btn-id').on('click', e => {
+    ipcRenderer.send('quitAndInstall');
+});
+```
+
+### Main process installs update
+
+```javascript
+// main.js - Main process
+ipcMain.on("quitAndInstall", (event, arg) => {
+    autoUpdater.quitAndInstall();
+});
+```
+
+<Tip>
+This two-way communication ensures the UI remains responsive while updates are managed safely in the background.
+</Tip>
+
+## When updates are checked
+
+Updates are checked automatically:
+
+- **On app launch**: Every time you start gSubs
+- **In the background**: Checks don't interrupt your work
+- **No manual checking needed**: The process is completely automatic
+
+```javascript
+app.on('ready', function() {
+    createWindow();
+    autoUpdater.checkForUpdates(); // Automatic check on startup
+});
+```
+
+## Dismissing update notifications
+
+If you want to install the update later:
+
+1. Click the close icon (X) on the notification bar
+2. The notification disappears but the update remains downloaded
+3. You can continue using gSubs normally
+4. The notification will reappear the next time you launch the app
+
+<Note>
+The downloaded update is stored locally and doesn't need to be downloaded again. You can install it whenever you're ready.
+</Note>
+
+## Update benefits
+
+Keeping gSubs updated ensures you have:
+
+- **Latest features**: New subtitle sources, search improvements, and UI enhancements
+- **Bug fixes**: Resolved issues and improved stability
+- **Security patches**: Updated dependencies and security improvements
+- **API compatibility**: Continued compatibility with SubDB and OpenSubtitles
+
+## Troubleshooting updates
+
+If you don't see update notifications:
+
+- Check your internet connection
+- Ensure gSubs has permission to access the network
+- Look for error messages in the app console (if developer tools are enabled)
+- Try restarting gSubs to trigger a new update check
+
+If an update fails to install:
+
+- Close gSubs completely and relaunch
+- Check that you have sufficient disk space
+- Verify you have write permissions in the app directory
+- Download the latest version manually from the official website
+
+<Warning>
+If updates consistently fail, you may need to manually download and reinstall gSubs from the official distribution source.
+</Warning>

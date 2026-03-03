@@ -1,0 +1,214 @@
+---
+title: Language support
+description: Download subtitles in 10 different languages with automatic conversion and language selection
+---
+
+gSubs supports subtitle downloads in 10 languages. The app automatically filters search results to show only subtitles in your selected language, ensuring you get the right subtitles every time.
+
+## Supported languages
+
+gSubs supports the following 10 languages:
+
+- **English** (`en` / `eng`)
+- **Español** - Spanish (`es` / `spa`)
+- **Français** - French (`fr` / `fre`)
+- **Italiano** - Italian (`it` / `ita`)
+- **Nederlands** - Dutch (`nl` / `dut`)
+- **Polski** - Polish (`pl` / `pol`)
+- **Português** - Portuguese (`pt` / `por`)
+- **Român** - Romanian (`ro` / `ron`)
+- **Svenska** - Swedish (`sv` / `swe`)
+- **Türkçe** - Turkish (`tr` / `tur`)
+
+## Changing language
+
+You can change your preferred subtitle language at any time:
+
+<Steps>
+  <Step title="Locate the language selector">
+    Look for the flag icon in the bottom-right corner of the gSubs window.
+  </Step>
+
+  <Step title="Click the flag button">
+    Click the flag to open the language selection dropdown menu.
+  </Step>
+
+  <Step title="Choose your language">
+    Select your preferred language from the list. Each option shows both the flag and language name.
+  </Step>
+
+  <Step title="Language saved automatically">
+    Your selection is saved immediately and persists across app restarts.
+  </Step>
+</Steps>
+
+```javascript
+// Language selection from the UI
+$('#language-select-id').on('click', e => {
+    var value = $('#language-select-id').dropdown('get value');
+    if (value == '') {
+        value = store.get('lang');
+    }
+    store.set('lang', value);
+    
+    // Update flag icon
+    $('#flag-shown-id').removeClass();
+    $('#flag-shown-id').addClass('flag');
+    if (store.get('lang') == 'en') {
+        $('#flag-shown-id').addClass('us');
+    } else {
+        $('#flag-shown-id').addClass(value);
+    }
+});
+```
+
+<Info>
+The first time you launch gSubs, it defaults to English. Your language preference is stored locally and remembered for all future sessions.
+</Info>
+
+## Language code conversion
+
+gSubs uses two different language code formats:
+
+- **2-letter codes** (ISO 639-1) for internal storage and UI display
+- **3-letter codes** (ISO 639-2) for OpenSubtitles API queries
+
+The app automatically converts between these formats:
+
+```javascript
+function languageCodeto3Letter(lang) {
+    switch (lang) {
+        case 'en':
+            return 'eng';
+        case 'es':
+            return 'spa';
+        case 'fr':
+            return 'fre';
+        case 'it':
+            return 'ita';
+        case 'nl':
+            return 'dut';
+        case 'pl':
+            return 'pol';
+        case 'pt':
+            return 'por';
+        case 'ro':
+            return 'ron';
+        case 'sv':
+            return 'swe';
+        case 'tr':
+            return 'tur';
+        default:
+            console.log("Error language code");
+            break;
+    }
+}
+```
+
+This conversion happens automatically every time you search for subtitles, ensuring compatibility with both SubDB and OpenSubtitles APIs.
+
+## How language selection affects searches
+
+When you search for subtitles, gSubs uses your selected language in multiple ways:
+
+### Drag-and-drop searches
+
+When you drag a video file:
+
+```javascript
+var singleScan = new CheckSubtitle(fullName, filePath, store.get('lang'));
+singleScan.checkSubSingle(showErrorPage, showFailurePage, showSuccessPage, showPartialSuccessPage, globalToken);
+```
+
+The `CheckSubtitle` class receives your language preference and uses it for:
+- SubDB hash-based searches
+- OpenSubtitles deep searches
+- Subtitle downloads
+
+### Manual searches
+
+When you use the search box:
+
+```javascript
+OpenSubtitles.search({
+    sublanguageid: languageCodeto3Letter(store.get('lang')),
+    query: query,
+    limit: 'all'
+});
+```
+
+Only subtitles matching your selected language will be returned in the results.
+
+### Deep searches
+
+When you click the arrow icon for a partial match:
+
+```javascript
+OpenSubtitles.search({
+    sublanguageid: languageCodeto3Letter(store.get('lang')),
+    path: filePathIn,
+    filename: fileNameWithExtension,
+    query: fileNameWithExtension,
+    limit: 'all'
+});
+```
+
+The deep search also filters by your selected language.
+
+<Tip>
+If you can't find subtitles in your preferred language, try switching to English which typically has the most comprehensive subtitle database.
+</Tip>
+
+## Language persistence
+
+Your language preference is stored using Electron Store:
+
+```javascript
+const Store = require('electron-store');
+global.store = new Store();
+
+// Check if language is set, otherwise default to English
+if (typeof store.get('lang') == 'undefined') {
+    store.set('lang', 'en');
+}
+
+// Retrieve stored language
+var currentLanguage = store.get('lang');
+```
+
+This means:
+- Your language choice persists between app sessions
+- You don't need to select your language every time
+- The setting is stored locally on your computer
+
+## Flag icons
+
+The language selector displays country flags to make selection intuitive:
+
+```html
+<div class="item" data-value="en">
+  <i class="us flag"></i>English
+</div>
+<div class="item" data-value="es">
+  <i class="es flag"></i>Español
+</div>
+<div class="item" data-value="fr">
+  <i class="fr flag"></i>Français
+</div>
+```
+
+The currently selected language's flag is always visible on the button, so you can see your selection at a glance.
+
+<Note>
+English uses the US flag icon instead of the GB flag for consistency with the OpenSubtitles database conventions.
+</Note>
+
+## Language limitations
+
+While gSubs supports 10 languages, subtitle availability depends on:
+
+- **Content popularity**: Major releases have subtitles in more languages
+- **Community contributions**: OpenSubtitles relies on user-submitted subtitles
+- **Regional content**: Local content may only have subtitles in certain languages
+
+If subtitles aren't available in your preferred language, you'll see the "couldn't find subtitle" error message. Try selecting a more common language like English as an alternative.

@@ -1,0 +1,277 @@
+---
+title: Batch processing
+description: Process multiple video files at once to find subtitles for entire seasons or collections
+---
+
+gSubs supports batch processing, allowing you to find subtitles for multiple video files simultaneously. Perfect for TV series seasons or movie collections.
+
+## How batch processing works
+
+When you drop multiple files or folders:
+
+1. gSubs recursively scans for all video files
+2. Creates a table showing all detected videos
+3. Searches for subtitles for each file in parallel
+4. Shows real-time status updates for each file
+5. Allows deep search for any files that need it
+
+## Processing multiple files
+
+<Steps>
+  <Step title="Select multiple videos">
+    You can add multiple files in two ways:
+    
+    **Drag multiple files:**
+    - Select multiple video files in your file explorer
+    - Drag them all into the gSubs drop zone
+    - You'll see a counter (e.g., "+12") showing how many files you're adding
+
+    **Drag an entire folder:**
+    - Drag a folder containing video files
+    - gSubs automatically finds all supported video files inside
+    - Nested folders are supported - it searches recursively
+  </Step>
+
+  <Step title="Wait for file detection">
+    gSubs scans your selection:
+    
+    ```javascript
+    // From index.js:331-361
+    function traverseFileTree(item, path, token) {
+        if (item.isFile) {
+            item.file(function (val) {
+                if (validateVideoFileExtension(fullName)) {
+                    // Add to results table
+                    // Create CheckSubtitle instance
+                    newCheckSub.checkSubMulti(callbacks);
+                }
+            });
+        } else if (item.isDirectory) {
+            var dirReader = item.createReader();
+            dirReader.readEntries(function (entries) {
+                $.each(entries, function (index, val) {
+                    traverseFileTree(val, path + item.name + "/", token);
+                });
+            });
+        }
+    }
+    ```
+
+    All video files are automatically detected and added to the processing queue.
+  </Step>
+
+  <Step title="View the results table">
+    A table appears showing all detected videos with:
+    - Full filename in the first column
+    - Status indicator in the second column (loading spinner initially)
+  </Step>
+
+  <Step title="Monitor search progress">
+    Watch as gSubs searches for each file:
+    
+    - **Loading spinner**: Search in progress
+    - **Green checkmark**: Subtitle found and downloaded
+    - **Red cross**: Error occurred (network issue or unsupported file)
+    - **Right arrow**: Deep search available (SubDB didn't find a match)
+  </Step>
+
+  <Step title="Wait for completion">
+    When all files finish processing:
+    - The background turns green
+    - The header shows "Successfully found subtitles for the following videos"
+    - Files with checkmarks have subtitles ready
+    - Files with arrows need deep search
+  </Step>
+</Steps>
+
+## Understanding batch status indicators
+
+### Checkmark icon (success)
+
+```javascript
+// From index.js:654-657
+function showSuccessPageMulti(filePath, index, token) {
+    $("#futher-search" + index).html('<span class="lnr lnr-checkmark-circle"></span>');
+    checkMultiCheckComplete(token);
+}
+```
+
+Means:
+- SubDB found an exact hash match
+- Subtitle downloaded automatically
+- File is located in the same directory as the video
+- Perfectly synchronized with your video
+
+### Cross icon (error)
+
+```javascript
+// From index.js:660-664
+function showErrorPageMulti(filePath, index, token) {
+    $("#futher-search" + index).html('<span class="lnr lnr-cross-circle"></span>');
+    checkMultiCheckComplete(token);
+}
+```
+
+Indicates:
+- Network connection issue
+- File couldn't be processed
+- API error from subtitle sources
+
+Try clicking the home button and processing the file individually for more details.
+
+### Arrow icon (partial success)
+
+```javascript
+// From index.js:668-673
+function showPartialSuccessPageMulti(filePath, index, token) {
+    $("#futher-search" + index).html('<div id="proceed-further-id' + index + '" class="proceed-further"><span class="lnr lnr-arrow-right"></span></div>');
+    checkMultiCheckComplete(token);
+    $("#proceed-further-id" + index).data('path', filePath);
+}
+```
+
+Means:
+- SubDB didn't find an exact match
+- Deep search with OpenSubtitles is available
+- Click the arrow to view subtitle options
+
+<Note>
+  The arrow icon means gSubs found potential matches but needs your input to choose the best subtitle.
+</Note>
+
+## Running deep search for specific files
+
+When a file shows a right arrow icon:
+
+<Steps>
+  <Step title="Click the arrow icon">
+    Click the right arrow next to the filename.
+  </Step>
+
+  <Step title="Wait for deep search">
+    gSubs performs an OpenSubtitles search:
+    
+    ```javascript
+    // From index.js:730-744
+    OpenSubtitles.search({
+        sublanguageid: languageCodeto3Letter(store.get('lang')),
+        path: filePathIn,
+        filename: fileNameWithExtension,
+        query: fileNameWithExtension,
+        limit: 'all'
+    }).then(result => {
+        if (jQuery.isEmptyObject(result)) {
+            console.log("Failed to find subtitle using deep search");
+            errorCB(result, filePathIn);
+        } else {
+            successCB(result, filePathIn);
+        }
+    });
+    ```
+    
+    The screen shows "Running deep subtitle search for" with the filename.
+  </Step>
+
+  <Step title="Choose from results">
+    A new table appears with multiple subtitle options:
+    - Each row shows a subtitle filename
+    - Click the download button for your preferred option
+    - The subtitle downloads to the video's directory
+  </Step>
+
+  <Step title="Return to batch results">
+    Click the back arrow (top-left) to return to your batch results table and continue with other files.
+  </Step>
+</Steps>
+
+## Tips for batch processing
+
+<AccordionGroup>
+  <Accordion title="How many files can I process at once?">
+    gSubs can handle dozens of files simultaneously. The app processes all files in parallel, with each file going through the SubDB search first.
+
+    For very large batches (50+ files), expect the initial SubDB searches to complete quickly, but you may need to manually trigger deep searches for files that don't find matches.
+  </Accordion>
+
+  <Accordion title="What if I close gSubs during batch processing?">
+    If you close the app or navigate away:
+    - Already downloaded subtitles remain saved
+    - In-progress searches are cancelled
+    - You'll need to restart the batch for remaining files
+
+    Files are processed independently, so partial completion is preserved.
+  </Accordion>
+
+  <Accordion title="Can I mix different video formats?">
+    Yes! gSubs supports all formats in the same batch:
+    - `.mp4`, `.mkv`, `.avi`, `.m4v`, `.mpg`, `.webm`
+
+    The file format doesn't affect subtitle search - gSubs uses the video hash and filename, not the container format.
+  </Accordion>
+
+  <Accordion title="Will batch processing work with nested folders?">
+    Absolutely. When you drag a folder, gSubs recursively searches all subfolders:
+    
+    ```
+    TV Show/
+      Season 1/
+        Episode 1.mp4
+        Episode 2.mp4
+      Season 2/
+        Episode 1.mkv
+        Episode 2.mkv
+    ```
+    
+    All videos in all subdirectories are detected and processed.
+  </Accordion>
+
+  <Accordion title="What order are files processed in?">
+    Files are processed in the order they're discovered by the file system. The order displayed in the table matches the processing order.
+
+    All SubDB searches happen in parallel, so the actual download order may vary based on network response times.
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+  For TV series with consistent naming, most episodes will find exact matches via SubDB, minimizing the need for manual deep searches.
+</Tip>
+
+## After batch processing completes
+
+Once all files are processed:
+
+1. Subtitles are saved next to each video file
+2. Each subtitle has the same name as its video (with `.srt` extension)
+3. Files with checkmarks are ready to watch
+4. Files with arrows need deep search
+5. Files with crosses may need troubleshooting
+
+## Example workflow: Processing a TV season
+
+Here's a typical workflow for a complete TV season:
+
+```
+1. Drag "Breaking Bad Season 1" folder into gSubs
+2. gSubs detects 7 episode files
+3. SubDB finds exact matches for 6 episodes (checkmarks appear)
+4. 1 episode shows an arrow (needs deep search)
+5. Click the arrow for the remaining episode
+6. Choose from 3 subtitle options
+7. All 7 episodes now have subtitles
+8. Ready to watch!
+```
+
+<Warning>
+  If many files show crosses instead of arrows or checkmarks, check your internet connection. Network issues can prevent both SubDB and OpenSubtitles searches.
+</Warning>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Troubleshooting" icon="wrench" href="/guide/troubleshooting">
+    Fix common issues with batch processing
+  </Card>
+  <Card title="Subtitle sources" icon="database" href="/guide/subtitle-sources">
+    Understand how SubDB and OpenSubtitles work
+  </Card>
+</CardGroup>

@@ -1,0 +1,382 @@
+---
+title: Subtitle sources
+description: Learn how gSubs uses SubDB and OpenSubtitles to find the perfect subtitle matches
+---
+
+gSubs uses two complementary subtitle sources to maximize your chances of finding perfectly synchronized subtitles: SubDB for hash-based matching and OpenSubtitles for comprehensive search.
+
+## How gSubs searches for subtitles
+
+gSubs implements a two-tier search strategy that prioritizes accuracy while providing fallback options:
+
+```javascript
+// From checksub.js:27-79
+// Tier 1: SubDB hash-based search
+subdb.computeHash(filePathIn, function (err, res) {
+    var hash = res;
+    subdb.api.search_subtitles(hash, function (err, res) {
+        subdb.api.download_subtitle(hash, languageIn, subPath, function (err, res) {
+            if (res == '') {
+                // Tier 2: OpenSubtitles deep search
+                OpenSubtitles.search({
+                    sublanguageid: languageCodeto3Letter(languageIn),
+                    path: filePathIn,
+                    filename: fileNameIn,
+                    query: fileNameIn,
+                    limit: 'all'
+                }).then(result => {
+                    // Return multiple options for user selection
+                });
+            }
+        });
+    });
+});
+```
+
+This approach ensures:
+- Fast, accurate results when available (SubDB)
+- Comprehensive fallback options (OpenSubtitles)
+- Maximum compatibility across different video sources
+
+## SubDB: Hash-based matching
+
+### What is SubDB?
+
+SubDB (Subtitles Database) is a hash-based subtitle database that matches subtitles using unique video file fingerprints.
+
+### How SubDB works
+
+<Steps>
+  <Step title="Hash computation">
+    gSubs computes a unique hash from your video file:
+    
+    ```javascript
+    // From checksub.js:29
+    subdb.computeHash(filePathIn, function (err, res) {
+        var hash = res;
+        // Hash is a unique identifier based on file content
+    });
+    ```
+    
+    The hash is generated from:
+    - First 64KB of the video file
+    - Last 64KB of the video file
+    - File size
+    
+    This creates a unique fingerprint that identifies your exact video file.
+  </Step>
+
+  <Step title="Database lookup">
+    The hash is sent to SubDB's API:
+    
+    ```javascript
+    // From checksub.js:37
+    subdb.api.search_subtitles(hash, function (err, res) {
+        // Search SubDB database for matching hash
+    });
+    ```
+    
+    SubDB searches its database for subtitles associated with that exact hash.
+  </Step>
+
+  <Step title="Direct download">
+    If a match is found:
+    
+    ```javascript
+    // From checksub.js:49
+    subdb.api.download_subtitle(hash, languageIn, subPath, function (err, res) {
+        if (res == '') {
+            // No match found, proceed to OpenSubtitles
+        } else {
+            // Subtitle downloaded successfully
+            successCall(filePathIn, token);
+        }
+    });
+    ```
+    
+    The subtitle downloads automatically to your video's directory.
+  </Step>
+</Steps>
+
+### Advantages of SubDB
+
+<CardGroup cols={2}>
+  <Card title="Perfect synchronization" icon="clock">
+    Hash matching ensures the subtitle is synced to your exact video file. No timing adjustments needed.
+  </Card>
+  <Card title="Lightning fast" icon="bolt">
+    Hash-based lookup completes in seconds. No searching through hundreds of options.
+  </Card>
+  <Card title="Automatic download" icon="download">
+    When a match is found, gSubs downloads it immediately. No manual selection required.
+  </Card>
+  <Card title="Reliable results" icon="check">
+    If SubDB has a subtitle for your video hash, it's guaranteed to be the correct one.
+  </Card>
+</CardGroup>
+
+### When SubDB finds a match
+
+SubDB typically finds matches for:
+- Popular movies and TV shows
+- Videos from common sources (streaming services, releases)
+- Files that many other users have already searched for
+- Standard video releases with consistent encoding
+
+<Tip>
+  If you download videos from popular sources, SubDB will almost always find a perfect match immediately.
+</Tip>
+
+### When SubDB doesn't find a match
+
+SubDB may not find matches for:
+- Personal recordings or home videos
+- Rare or obscure content
+- Videos you've edited or trimmed
+- Custom encodes with unique file hashes
+- Very new releases not yet in the database
+
+In these cases, gSubs automatically proceeds to OpenSubtitles.
+
+## OpenSubtitles: Comprehensive search
+
+### What is OpenSubtitles?
+
+OpenSubtitles is the world's largest open-source subtitle database, containing millions of subtitles for movies and TV shows in multiple languages.
+
+### How OpenSubtitles works
+
+When SubDB doesn't find a match, gSubs queries OpenSubtitles:
+
+```javascript
+// From checksub.js:58-70
+OpenSubtitles.search({
+    sublanguageid: languageCodeto3Letter(languageIn),  // Your selected language
+    path: filePathIn,           // Full file path
+    filename: fileNameIn,       // Video filename
+    query: fileNameIn,          // Search query
+    limit: 'all'                // Return all matches
+}).then(result => {
+    if (jQuery.isEmptyObject(result)) {
+        failureCall(token);  // No results found
+    } else {
+        partialSuccessCall(result, filePathIn, token);  // Show options
+    }
+});
+```
+
+### OpenSubtitles search parameters
+
+OpenSubtitles searches using multiple criteria:
+
+<AccordionGroup>
+  <Accordion title="Language filter">
+    ```javascript
+    // From index.js:848-873
+    function languageCodeto3Letter(lang) {
+        switch (lang) {
+            case 'en': return 'eng';
+            case 'es': return 'spa';
+            case 'fr': return 'fre';
+            case 'it': return 'ita';
+            case 'nl': return 'dut';
+            case 'pl': return 'pol';
+            case 'pt': return 'por';
+            case 'ro': return 'ron';
+            case 'sv': return 'swe';
+            case 'tr': return 'tur';
+        }
+    }
+    ```
+    
+    gSubs converts your selected language to OpenSubtitles' 3-letter format and filters results accordingly.
+  </Accordion>
+
+  <Accordion title="Filename matching">
+    OpenSubtitles analyzes your filename to extract:
+    - Movie or show title
+    - Season and episode numbers (for TV shows)
+    - Release group tags
+    - Quality indicators (720p, 1080p, etc.)
+    
+    Example: `Breaking.Bad.S01E01.1080p.BluRay.x264-GROUP.mkv`
+    - Title: Breaking Bad
+    - Season: 1
+    - Episode: 1
+    - Quality: 1080p BluRay
+  </Accordion>
+
+  <Accordion title="File path analysis">
+    OpenSubtitles can also use the full file path to improve matching:
+    ```
+    /Movies/Breaking Bad/Season 1/Episode 1.mkv
+    ```
+    
+    The folder structure provides additional context for more accurate results.
+  </Accordion>
+</AccordionGroup>
+
+### Understanding OpenSubtitles results
+
+When OpenSubtitles returns results, gSubs displays them in a table:
+
+```javascript
+// From index.js:469-477
+$.each(resultJSONParse, function (key, val) {
+    var fileName = this.filename;  // Subtitle filename
+    var subURL = this.url;         // Download URL
+    var subPath = path.join(path.dirname(filePath), fileName);
+    
+    // Create download button for each option
+    $("#result-tbody").append(
+        '<tr><td>' + fileName + '</td>' +
+        '<td><div class="download-btn"></div></td></tr>'
+    );
+});
+```
+
+Each result shows:
+- Full subtitle filename (usually indicates quality and source)
+- Download button to save that specific subtitle
+
+### Choosing the right subtitle
+
+When presented with multiple options:
+
+<Steps>
+  <Step title="Match the release group">
+    Look for filenames that match your video's release group:
+    ```
+    Your video: Breaking.Bad.S01E01.1080p.BluRay.x264-DEMAND.mkv
+    Best subtitle: Breaking.Bad.S01E01.1080p.BluRay.x264-DEMAND.srt
+    ```
+  </Step>
+
+  <Step title="Match quality indicators">
+    Subtitles tagged with the same quality (720p, 1080p, WEB-DL, BluRay) are more likely to sync correctly.
+  </Step>
+
+  <Step title="Check subtitle filename length">
+    Longer, more specific filenames usually indicate better quality and more accurate timing.
+  </Step>
+
+  <Step title="Download and test">
+    When in doubt, download the most specific match and test it. If timing is off, try another option.
+  </Step>
+</Steps>
+
+<Note>
+  OpenSubtitles results may require minor timing adjustments in your video player, especially if your video file differs from the subtitle's source.
+</Note>
+
+## Search flow comparison
+
+| Aspect | SubDB | OpenSubtitles |
+|--------|-------|---------------|
+| **Search method** | Hash-based | Filename/metadata |
+| **Speed** | Very fast (seconds) | Fast (few seconds) |
+| **Accuracy** | Perfect sync | May need adjustment |
+| **Results** | One exact match | Multiple options |
+| **User action** | Automatic | Manual selection |
+| **Best for** | Popular releases | Rare content |
+| **Coverage** | Common videos | Comprehensive |
+
+## Language support
+
+Both sources support gSubs' 10 languages:
+
+```javascript
+// From index.js:848-873
+const supportedLanguages = {
+    'en': 'English',
+    'es': 'Español',
+    'fr': 'Français',
+    'it': 'Italiano',
+    'nl': 'Nederlands',
+    'pl': 'Polski',
+    'pt': 'Português',
+    'ro': 'Român',
+    'sv': 'Svenska',
+    'tr': 'Türkçe'
+};
+```
+
+Your language selection is stored locally and applies to both SubDB and OpenSubtitles searches:
+
+```javascript
+// From index.js:46-49
+if (typeof store.get('lang') == 'undefined') {
+    store.set('lang', 'en');  // Default to English
+}
+```
+
+<Tip>
+  Change your language before searching to ensure both subtitle sources return results in your preferred language.
+</Tip>
+
+## API authentication
+
+gSubs handles all API authentication automatically:
+
+```javascript
+// From index.js:9-15
+const OpenSubtitles = new OS({
+    useragent: 'gsubs',
+    username: 'gsubs',
+    password: '2e6600434b69735881a7ebe19ffc59ee',
+    ssl: true,
+});
+```
+
+You don't need to:
+- Create an account
+- Register for API keys
+- Configure authentication
+- Worry about rate limits (for normal usage)
+
+## Why two sources?
+
+The two-tier approach provides the best of both worlds:
+
+<CardGroup cols={2}>
+  <Card title="Speed + accuracy" icon="gauge-high">
+    SubDB provides instant, perfectly synced results for common videos.
+  </Card>
+  <Card title="Comprehensive coverage" icon="globe">
+    OpenSubtitles ensures you can find subtitles even for obscure content.
+  </Card>
+  <Card title="Automatic fallback" icon="arrows-rotate">
+    If one source fails, the other picks up automatically. No manual intervention.
+  </Card>
+  <Card title="User choice" icon="hand-pointer">
+    For rare videos, you get to choose the best subtitle from multiple options.
+  </Card>
+</CardGroup>
+
+## Future sources
+
+From the README, additional sources are planned:
+
+```markdown
+# Sources
+* [x] SubDB
+* [x] OpenSubtitles
+* [ ] Addic7ed
+```
+
+Addic7ed specializes in TV show subtitles and would provide another tier of specialized search for series content.
+
+<Note>
+  Feature requests and source suggestions can be submitted to the [gSubs GitHub repository](https://github.com/sanjevirau/gsubs).
+</Note>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Troubleshooting" icon="wrench" href="/guide/troubleshooting">
+    Fix subtitle search and download issues
+  </Card>
+  <Card title="Finding subtitles" icon="magnifying-glass" href="/guide/finding-subtitles">
+    Learn the complete single-file workflow
+  </Card>
+</CardGroup>

@@ -1,0 +1,317 @@
+---
+title: Building the app
+description: Build gSubs for Windows, macOS, and Linux distribution
+---
+
+gSubs uses `electron-builder` to package the application for different platforms. This guide covers building the app for production releases.
+
+## Build configuration
+
+The build configuration is defined in `electron-builder.yml` at the root of the project:
+
+```yaml
+appId: com.cholaware.gsubs
+productName: gSubs
+copyright: Copyright © 2020 Cholaware
+```
+
+### Platform-specific settings
+
+<Tabs>
+  <Tab title="Windows">
+    ```yaml
+    win:
+      target: nsis
+      icon: build/icon.ico
+      publish:
+        - provider: github
+    nsis:
+      perMachine: true
+    ```
+
+    - **Target**: NSIS installer (Windows)
+    - **Icon**: Uses `build/icon.ico`
+    - **Installation**: Per-machine installation (requires admin)
+    - **Publishing**: Configured for GitHub Releases
+  </Tab>
+
+  <Tab title="macOS">
+    ```yaml
+    dmg:
+      contents:
+        - x: 110
+          y: 150
+        - x: 400
+          y: 150
+          type: link
+          path: /Applications
+    ```
+
+    - **Target**: DMG disk image
+    - **Layout**: Custom positioning for app icon and Applications folder link
+  </Tab>
+
+  <Tab title="Linux">
+    ```yaml
+    linux:
+      category: Utility
+      target:
+        - AppImage
+        - deb
+        - rpm
+    ```
+
+    - **Category**: Utility application
+    - **Targets**: AppImage (universal), deb (Debian/Ubuntu), rpm (Fedora/RHEL)
+  </Tab>
+</Tabs>
+
+## Build scripts
+
+The `package.json` includes several build scripts:
+
+```json
+{
+  "scripts": {
+    "pack": "build --dir",
+    "dist:win": "build -w --config",
+    "dist:mac": "build -m --config",
+    "dist:linux": "build -l --config"
+  }
+}
+```
+
+### Available commands
+
+<AccordionGroup>
+  <Accordion title="npm run pack">
+    Builds the app without packaging into an installer.
+
+    ```bash
+    npm run pack
+    ```
+
+    **Output**: Unpacked application in `dist/` directory (faster for testing)
+
+    **Use case**: Testing the built app without creating installers
+  </Accordion>
+
+  <Accordion title="npm run dist:win">
+    Builds a Windows installer.
+
+    ```bash
+    npm run dist:win
+    ```
+
+    **Output**: 
+    - `dist/gSubs Setup X.X.X.exe` - NSIS installer
+    - `dist/win-unpacked/` - Unpacked application
+
+    **Requirements**: Can be run on Windows, macOS, or Linux (using Wine)
+  </Accordion>
+
+  <Accordion title="npm run dist:mac">
+    Builds a macOS disk image.
+
+    ```bash
+    npm run dist:mac
+    ```
+
+    **Output**:
+    - `dist/gSubs-X.X.X.dmg` - macOS disk image
+    - `dist/mac/gSubs.app` - Application bundle
+
+    **Requirements**: Must be run on macOS (code signing requires macOS)
+  </Accordion>
+
+  <Accordion title="npm run dist:linux">
+    Builds Linux packages.
+
+    ```bash
+    npm run dist:linux
+    ```
+
+    **Output**:
+    - `dist/gSubs-X.X.X.AppImage` - Universal Linux package
+    - `dist/gsubs_X.X.X_amd64.deb` - Debian package
+    - `dist/gsubs-X.X.X.x86_64.rpm` - RPM package
+
+    **Requirements**: Preferably run on Linux (can run on other platforms with limitations)
+  </Accordion>
+</AccordionGroup>
+
+## Building for all platforms
+
+To build for multiple platforms at once, you can modify the build command. However, note that:
+
+<Warning>
+  The original README mentions changing the `dist` script to `build -wlm --config`, but this has been split into separate scripts for better control and platform-specific builds.
+</Warning>
+
+If you want to build for all platforms in one command:
+
+```json
+{
+  "scripts": {
+    "dist:all": "build -wml --config"
+  }
+}
+```
+
+Then run:
+
+```bash
+npm run dist:all
+```
+
+<Note>
+  Cross-platform builds have limitations. For best results:
+  - Build Windows on Windows or use CI/CD
+  - Build macOS on macOS (required for code signing)
+  - Build Linux on Linux or macOS
+</Note>
+
+## Build process
+
+<Steps>
+  <Step title="Prepare the build">
+    Ensure all changes are committed and the version number in `package.json` is updated:
+
+    ```json
+    {
+      "name": "gsubs",
+      "version": "1.0.3"
+    }
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    Make sure all dependencies are installed:
+
+    ```bash
+    npm install
+    ```
+  </Step>
+
+  <Step title="Run the build">
+    Execute the appropriate build command for your target platform:
+
+    <CodeGroup>
+    ```bash Windows
+    npm run dist:win
+    ```
+
+    ```bash macOS
+    npm run dist:mac
+    ```
+
+    ```bash Linux
+    npm run dist:linux
+    ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Verify the output">
+    Check the `dist/` directory for the generated installers and packages.
+
+    ```bash
+    ls -la dist/
+    ```
+  </Step>
+</Steps>
+
+## Build artifacts
+
+After building, you'll find these files in the `dist/` directory:
+
+| Platform | File | Description |
+|----------|------|-------------|
+| Windows | `gSubs Setup X.X.X.exe` | NSIS installer |
+| macOS | `gSubs-X.X.X.dmg` | Disk image |
+| Linux | `gSubs-X.X.X.AppImage` | Universal Linux package |
+| Linux | `gsubs_X.X.X_amd64.deb` | Debian/Ubuntu package |
+| Linux | `gsubs-X.X.X.x86_64.rpm` | Fedora/RHEL package |
+
+## Code signing
+
+<Warning>
+  The current configuration does not include code signing. For production releases, you should add code signing certificates.
+</Warning>
+
+### Windows code signing
+
+Add to `electron-builder.yml`:
+
+```yaml
+win:
+  certificateFile: path/to/certificate.pfx
+  certificatePassword: ${CERTIFICATE_PASSWORD}
+```
+
+### macOS code signing
+
+Add to `electron-builder.yml`:
+
+```yaml
+mac:
+  identity: "Developer ID Application: Your Name (XXXXXXXXXX)"
+```
+
+## Publishing
+
+The Windows configuration includes GitHub publishing:
+
+```yaml
+win:
+  publish:
+    - provider: github
+```
+
+To publish a release:
+
+```bash
+export GH_TOKEN="your_github_token"
+npm run dist:win -- --publish always
+```
+
+This will:
+1. Build the app
+2. Create a draft release on GitHub
+3. Upload the installer as a release asset
+
+## Troubleshooting
+
+### Build fails on native modules
+
+Rebuild native modules for the correct Electron version:
+
+```bash
+npm run postinstall
+```
+
+### Out of memory errors
+
+Increase Node.js memory limit:
+
+```bash
+export NODE_OPTIONS=--max_old_space_size=4096
+npm run dist:win
+```
+
+### Missing build directory
+
+Ensure the `build/` directory exists with platform icons:
+- `build/icon.ico` (Windows)
+- `build/icon.icns` (macOS)
+- `build/icon.png` (Linux)
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Contributing" icon="code-pull-request" href="/development/contributing">
+    Learn how to contribute your changes
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/development/architecture">
+    Understand the codebase structure
+  </Card>
+</CardGroup>

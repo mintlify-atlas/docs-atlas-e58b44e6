@@ -1,0 +1,174 @@
+---
+title: Search subtitles
+description: Search for subtitles by movie or TV show name using the built-in search feature
+---
+
+The search feature lets you find and download subtitles by entering a movie or TV show name, even without having the video file. This is useful when you want to download subtitles before obtaining the video or when you want to browse available subtitle options.
+
+## How to search
+
+<Steps>
+  <Step title="Open the search box">
+    The search box is visible on the home screen with the placeholder text "Search for subtitles here and press enter..." and a magnifier icon.
+  </Step>
+
+  <Step title="Enter your search query">
+    Type the name of the movie or TV show episode you're looking for. The more specific your search, the better the results.
+  </Step>
+
+  <Step title="Press Enter">
+    Hit the Enter key to start the search. gSubs will query the OpenSubtitles database.
+    
+    ```javascript
+    $("#search-box-id").keyup(function (event) {
+        if (event.keyCode === 13) {
+            globalToken = "";
+            var searchBoxValue = $('#search-box-id').val();
+            querySearch(searchBoxValue, showQuerySuccessPage, showQueryFailurePage);
+        }
+    });
+    ```
+  </Step>
+
+  <Step title="View results">
+    If subtitles are found, a results table appears with all available subtitle files. Click the download icon next to any result to save it.
+  </Step>
+</Steps>
+
+## Search process
+
+When you submit a search query, gSubs:
+
+1. **Generates a unique token** to track the search session and prevent conflicts with other operations
+2. **Changes the UI** to show loading state with the purple gradient background
+3. **Queries OpenSubtitles API** with your search term and selected language
+4. **Displays results** in a table format or shows an error message if nothing is found
+
+```javascript
+function querySearch(query, successCB, errorCB) {
+    globalToken = tokenGenerator();
+    
+    $(".main-window").css("background", "linear-gradient(to bottom, #8241f9 0%, #7f40f2 52%, #4e277b 100%)");
+    $("#logo").attr("src", "../img/logo-p.svg");
+    $('.loading span').css('color', '#7f40f2');
+    $("#loading-id").fadeIn("slow");
+    
+    OpenSubtitles.search({
+        sublanguageid: languageCodeto3Letter(store.get('lang')),
+        query: query,
+        limit: 'all'
+    }).then(result => {
+        if (jQuery.isEmptyObject(result)) {
+            errorCB(globalToken);
+        } else {
+            successCB(result, globalToken);
+        }
+    });
+}
+```
+
+## Understanding search results
+
+When subtitles are found, gSubs displays:
+
+- **Background color change**: Purple → Green to indicate success
+- **Header message**: "Subtitles successfully searched"
+- **Results table**: Lists all available subtitle files with download buttons
+
+```javascript
+$(".main-window").css("background", "linear-gradient(to bottom,  #ADD372 0%, #8EC89F 85%,#77C0C0 100%)");
+$("#searching-sub-for-id").text('Subtitles successfully searched');
+$("#logo").attr("src", "../img/logo-g.svg");
+$('#result-table-id').fadeIn('fast');
+```
+
+<Info>
+The search respects your currently selected language. Make sure to choose your preferred language from the dropdown in the bottom-right corner before searching.
+</Info>
+
+## Downloading from search results
+
+Each subtitle in the results table has a download button:
+
+1. Click the download icon (arrow pointing down)
+2. A save dialog appears asking where you want to save the subtitle file
+3. Choose your destination folder and filename
+4. The button changes to a loading spinner during download
+5. Once complete, the button shows a checkmark icon
+
+```javascript
+// Downloads are saved to Desktop by default
+var subPath = path.join(os.homedir(), 'Desktop', fileName);
+
+// Save dialog lets you choose a different location
+dialog.showSaveDialog(null, {
+    filters: [{
+        name: 'Subtitle',
+        extensions: ['srt']
+    }],
+    defaultPath: fullPath
+});
+```
+
+<Tip>
+The save dialog defaults to your Desktop folder, but you can navigate to any location and rename the file before saving.
+</Tip>
+
+## When search fails
+
+If no subtitles are found for your query:
+
+- The background changes to red
+- A sad face icon appears
+- The message reads: "Sorry, I couldn't find the subtitles. I understand I do fail sometimes, but that's our nature right?"
+
+```javascript
+$(".main-window").css("background", "linear-gradient(to bottom,  #DD1818 0%, #862626 85%,#DD1818 100%)");
+$("#logo").attr("src", "../img/logo-r.svg");
+$('#sad-id').fadeIn('slow');
+$(".fail-to-find-text").fadeIn("fast");
+```
+
+<Warning>
+If the search fails, try:
+- Using a different spelling or alternative title
+- Including the year (e.g., "Blade Runner 2049")
+- Using the original language title
+- Checking your internet connection
+</Warning>
+
+## Search tips
+
+For best results when searching:
+
+- **Be specific**: Include year, season, and episode numbers for TV shows
+- **Use common formats**: "Movie.Name.2023" or "Show.Name.S01E01"
+- **Try variations**: Try both the original and localized titles
+- **Check your language**: Ensure the correct language is selected before searching
+
+## Multiple results
+
+OpenSubtitles often returns multiple subtitle files for popular content:
+
+- Different releases (BluRay, WEB-DL, etc.)
+- Various quality versions
+- Different translators or subtitle groups
+
+Browse through all the results to find the one that best matches your video file.
+
+```javascript
+// The app handles both single and multiple results
+if (multipleFound) {
+    $.each(resultJSONParse, function (key, val) {
+        $.each(val, function (key, val) {
+            var fileName = this.filename;
+            var subURL = this.url;
+            // Add to results table
+        });
+    });
+}
+```
+
+## Return to search
+
+Click the home button at any time to return to the main screen and start a new search. The search box remains accessible from the home screen.

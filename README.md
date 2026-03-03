@@ -1,28 +1,14 @@
-# Mintlify Starter Kit
+# gSubs Documentation
 
-Use the starter kit to get your docs deployed and ready to customize.
+Documentation for gSubs - A desktop app that finds you the perfect subtitle match for your videos.
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
+This documentation covers:
 
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
-
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
-
-## AI-assisted writing
-
-Set up your AI coding tool to work with Mintlify:
-
-```bash
-npx skills add https://mintlify.com/docs
-```
-
-This command installs Mintlify's documentation skill for your configured AI tools like Claude Code, Cursor, Windsurf, and others. The skill includes component reference, writing standards, and workflow guidance.
-
-See the [AI tools guides](/ai-tools) for tool-specific setup.
+- Installation and setup
+- Core features (drag-and-drop, batch processing, search)
+- User guides for finding subtitles
+- Troubleshooting common issues
+- Development and contributing guidelines
 
 ## Development
 

@@ -1,0 +1,158 @@
+---
+title: Multiple files
+description: Process multiple video files and entire folders at once with batch subtitle search
+---
+
+The multiple files feature allows you to drag entire folders or multiple video files at once into gSubs. The app will recursively search through all directories, find all supported video files, and search for subtitles for each one simultaneously.
+
+## Batch processing workflow
+
+When you drop multiple files or folders, gSubs:
+
+<Steps>
+  <Step title="Scans for video files">
+    Recursively traverses all folders to find supported video files (`.mp4`, `.mkv`, `.avi`, `.m4v`, `.mpg`, `.webm`).
+  </Step>
+
+  <Step title="Creates a results table">
+    Displays a table showing all discovered video files with a loading spinner next to each one.
+  </Step>
+
+  <Step title="Searches in parallel">
+    Initiates subtitle searches for all files simultaneously, each creating its own `CheckSubtitle` instance.
+    
+    ```javascript
+    var newCheckSub = new CheckSubtitle(fullName, filePath, store.get('lang'), global.multiindex);
+    newCheckSub.checkSubMulti(showErrorPageMulti, showSuccessPageMulti, showPartialSuccessPageMulti, token);
+    ```
+  </Step>
+
+  <Step title="Updates results in real-time">
+    As each subtitle search completes, the spinner is replaced with an icon indicating the result.
+  </Step>
+</Steps>
+
+## Result indicators
+
+Each video file in the results table shows one of three status icons:
+
+### Checkmark circle (Success)
+
+A green checkmark indicates the subtitle was found and downloaded successfully. The subtitle file is saved next to the video file.
+
+```javascript
+$("#futher-search" + index).html('<span class="lnr lnr-checkmark-circle"></span>');
+```
+
+### Cross circle (Error)
+
+A red cross indicates an error occurred during the search, typically due to:
+- Network connection issues
+- API errors
+- File access problems
+
+```javascript
+$("#futher-search" + index).html('<span class="lnr lnr-cross-circle"></span>');
+```
+
+### Right arrow (Partial match)
+
+A right arrow indicates that subtitles might be available through deep search. Click the arrow to initiate a detailed search using OpenSubtitles.
+
+```javascript
+$("#futher-search" + index).html('<div id="proceed-further-id' + index + '" class="proceed-further"><span class="lnr lnr-arrow-right"></span></div>');
+```
+
+<Info>
+The deep search option appears when SubDB doesn't have a match, but OpenSubtitles might have alternatives based on the filename and metadata.
+</Info>
+
+## Recursive folder traversal
+
+When you drag a folder into gSubs, the app uses a recursive function to find all video files in nested subdirectories:
+
+```javascript
+function traverseFileTree(item, path, token) {
+    path = path || "";
+    if (item.isFile) {
+        item.file(function (val) {
+            var fullName = val.name;
+            var filePath = val.path;
+            
+            if (validateVideoFileExtension(fullName)) {
+                global.multiindex++;
+                var newCheckSub = new CheckSubtitle(fullName, filePath, store.get('lang'), global.multiindex);
+                newCheckSub.checkSubMulti(showErrorPageMulti, showSuccessPageMulti, showPartialSuccessPageMulti, token);
+                global.multifilesnum++;
+            }
+        });
+    } else if (item.isDirectory) {
+        var dirReader = item.createReader();
+        dirReader.readEntries(function (entries) {
+            $.each(entries, function (index, val) {
+                traverseFileTree(val, path + item.name + "/", token);
+            });
+        });
+    }
+}
+```
+
+This means you can drop your entire Movies folder, and gSubs will find every video file regardless of how deeply nested it is.
+
+## Progress tracking
+
+The app tracks the number of files being processed using a global counter:
+
+```javascript
+global.multifilesnum = 0; // Total files to process
+global.multiindex = 0;    // Current file index
+```
+
+When all files have been processed, gSubs changes the background to green and displays: "Successfully found subtitles for the following videos".
+
+<Tip>
+You can process dozens of video files at once. The app handles each one independently, so even if some fail, others will still complete successfully.
+</Tip>
+
+## Deep search for specific files
+
+If a file shows the right arrow icon (partial match), you can click it to perform a deep search:
+
+1. Click the arrow icon next to the filename
+2. gSubs switches to deep search mode and queries OpenSubtitles with additional parameters
+3. A new results table appears with all available subtitle options
+4. Click the download icon next to any subtitle to save it
+
+The deep search uses more comprehensive search criteria:
+
+```javascript
+OpenSubtitles.search({
+    sublanguageid: languageCodeto3Letter(store.get('lang')),
+    path: filePathIn,
+    filename: fileNameWithExtension,
+    query: fileNameWithExtension,
+    limit: 'all'
+});
+```
+
+<Warning>
+Make sure you have a stable internet connection when processing multiple files. If the connection drops, files with errors will display the cross icon and you can retry them individually.
+</Warning>
+
+## Results table layout
+
+The results table is displayed with:
+- **Left column**: Filename (truncated if too long, hover to see full name)
+- **Right column**: Status icon (spinner, checkmark, cross, or arrow)
+
+```javascript
+$("#result-tbody").append(
+  '<tr><td title="' + fullName + '">' + fullName + 
+  '</td><td><div id="futher-search' + global.multiindex + 
+  '" class="further-search-btn"><div class="ui small active inverted loader"></div></div></td></tr>'
+);
+```
+
+## Return to home
+
+After processing multiple files, click the home button to return to the main screen. The results table will be cleared and you can start a new batch.
