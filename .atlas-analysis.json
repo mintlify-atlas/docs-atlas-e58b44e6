@@ -1,0 +1,75 @@
+{
+  "projectType": "saas",
+  "projectName": "gSubs",
+  "projectDescription": "A desktop app that finds you the perfect subtitle match for your videos",
+  "theme": "almond",
+  "primaryColor": "#7f40f2",
+  "lightColor": "#8EC89F",
+  "darkColor": "#4e277b",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/drag-and-drop",
+              "features/multiple-files",
+              "features/search-subtitles",
+              "features/language-support",
+              "features/auto-update"
+            ]
+          },
+          {
+            "group": "User Guide",
+            "pages": [
+              "guide/finding-subtitles",
+              "guide/batch-processing",
+              "guide/subtitle-sources",
+              "guide/troubleshooting"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Development",
+        "groups": [
+          {
+            "group": "Contributing",
+            "pages": [
+              "development/setup",
+              "development/building",
+              "development/architecture",
+              "development/contributing"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Drag and drop video files to find subtitles",
+    "Batch processing for multiple files",
+    "Search subtitles by movie/series name",
+    "Support for 10 languages",
+    "Automatic updates",
+    "Multiple subtitle sources (SubDB, OpenSubtitles)"
+  ],
+  "publicApiSurface": [
+    "CheckSubtitle.checkSubSingle()",
+    "CheckSubtitle.checkSubMulti()",
+    "SubDB API integration",
+    "OpenSubtitles API integration",
+    "Electron auto-updater",
+    "Language selection (en, es, fr, it, nl, pl, pt, ro, sv, tr)"
+  ]
+}
